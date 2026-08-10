@@ -17,15 +17,19 @@ const MainAppLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
       
-      {/* Sliding Sidebar Navigation (Desktop Left Sidebar + Mobile Drawer) */}
+      {/* Sliding Sidebar Navigation with Edge Swipe Gesture Support */}
       <Sidebar 
         isOpen={isSidebarOpen} 
+        onOpen={() => setIsSidebarOpen(true)}
         onClose={() => setIsSidebarOpen(false)} 
       />
 
-      {/* Main Right Content Layout Area */}
-      <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
-        <Header onOpenSidebar={() => setIsSidebarOpen(true)} />
+      {/* Main Content Area */}
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarOpen ? 'filter blur-[2px] pointer-events-none sm:pointer-events-auto' : ''}`}>
+        <Header 
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)} 
+        />
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20">
           {activeTab === 'dashboard' && <Dashboard />}
@@ -46,7 +50,7 @@ const MainAppLayout: React.FC = () => {
               <span>•</span>
               <span>Roommate Shared & Personal Manager</span>
             </div>
-            <p>Designed for Roommates • Mobile Compatible Layout</p>
+            <p>Designed for Roommates • Edge Swipe & Blurred Backdrop</p>
           </div>
         </footer>
       </div>
