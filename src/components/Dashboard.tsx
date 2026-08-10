@@ -1,0 +1,352 @@
+import React from 'react';
+import { 
+  Wallet, 
+  TrendingUp, 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  Home, 
+  UserCheck, 
+  Utensils, 
+  Zap, 
+  Wifi, 
+  ShoppingBag, 
+  Car, 
+  Plus, 
+  ChevronRight,
+  ShieldCheck
+} from 'lucide-react';
+import { useExpense } from '../context/ExpenseContext';
+import type { Category } from '../types';
+
+export const Dashboard: React.FC = () => {
+  const { 
+    expenses, 
+    members, 
+    totalCashPaid, 
+    currentUserBurden, 
+    currentUserRecoverable,
+    setActiveTab,
+    setIsAddExpenseModalOpen
+  } = useExpense();
+
+  const now = new Date('2026-08-10');
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  const currentUser = members.find((m) => m.isCurrentUser) || members[0];
+
+  let thisWeekRoomShare = 0;
+  let thisWeekPersonal = 0;
+  let thisMonthRoomShare = 0;
+  let thisMonthPersonal = 0;
+
+  const categoryTotals: Record<string, number> = {};
+
+  expenses.forEach((exp) => {
+    const expDate = new Date(exp.date);
+    const isThisWeek = expDate >= oneWeekAgo;
+    const isThisMonth = expDate >= oneMonthAgo;
+
+    let userShare = 0;
+    if (exp.type === 'PERSONAL' && exp.paidBy === currentUser.id) {
+      userShare = exp.amount;
+      if (isThisWeek) thisWeekPersonal += userShare;
+      if (isThisMonth) thisMonthPersonal += userShare;
+    } else if (exp.type === 'SHARED') {
+      const split = exp.splits.find((s) => s.memberId === currentUser.id);
+      if (split) {
+        userShare = split.shareAmount;
+        if (isThisWeek) thisWeekRoomShare += userShare;
+        if (isThisMonth) thisMonthRoomShare += userShare;
+      }
+    }
+
+    if (userShare > 0) {
+      categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + userShare;
+    }
+  });
+
+  const thisWeekTotal = thisWeekRoomShare + thisWeekPersonal;
+  const thisMonthTotal = thisMonthRoomShare + thisMonthPersonal;
+
+  const categoryIcons: Record<string, any> = {
+    Food: Utensils,
+    Electricity: Zap,
+    'Wi-Fi': Wifi,
+    Groceries: ShoppingBag,
+    Shopping: ShoppingBag,
+    Travel: Car,
+    Cleaning: Home,
+  };
+
+  const categoriesList: Category[] = [
+    'Food',
+    'Electricity',
+    'Wi-Fi',
+    'Groceries',
+    'Cleaning',
+    'Shopping',
+    'Travel',
+    'Entertainment',
+    'Other',
+  ];
+
+  const maxCategorySpend = Math.max(...Object.values(categoryTotals), 1);
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="glass-card rounded-2xl p-6 relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900/90 to-emerald-950/40 border border-slate-800">
+        <div className="absolute -right-10 -bottom-10 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+          <div>
+            <div className="flex items-center space-x-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-1">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Smart Roommate & Personal Ledger</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+              Welcome back, {currentUser.name.split(' ')[0]} 👋
+            </h2>
+            <p className="text-slate-400 text-sm mt-1 max-w-xl">
+              Track actual cash paid out versus your real share of room expenses. Never guess who owes whom at month end.
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setIsAddExpenseModalOpen(true)}
+              className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/20 text-sm transition transform hover:scale-[1.02] flex items-center space-x-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Log Expense</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <div className="glass-card glass-card-hover rounded-2xl p-6 relative overflow-hidden border border-slate-800/80">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">1. Cash Paid Out</span>
+            <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl">
+              <Wallet className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="text-3xl font-black text-white">
+              ₹{totalCashPaid.toLocaleString('en-IN')}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Total physical cash/UPI sent from your bank account
+            </p>
+          </div>
+        </div>
+
+        <div className="glass-card glass-card-hover rounded-2xl p-6 relative overflow-hidden border border-slate-800/80">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">2. Your Actual Expense</span>
+            <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="text-3xl font-black text-emerald-400">
+              ₹{currentUserBurden.toLocaleString('en-IN')}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Personal expenses + your 1/4th room share
+            </p>
+          </div>
+        </div>
+
+        <div className="glass-card glass-card-hover rounded-2xl p-6 relative overflow-hidden border border-slate-800/80">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">3. Net Room Balance</span>
+            <div className={`p-2.5 rounded-xl ${currentUserRecoverable >= 0 ? 'bg-teal-500/10 text-teal-400' : 'bg-rose-500/10 text-rose-400'}`}>
+              {currentUserRecoverable >= 0 ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className={`text-3xl font-black ${currentUserRecoverable >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
+              {currentUserRecoverable >= 0 ? `+₹${currentUserRecoverable.toLocaleString('en-IN')}` : `-₹${Math.abs(currentUserRecoverable).toLocaleString('en-IN')}`}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              {currentUserRecoverable >= 0 
+                ? 'Money roommates owe you for shared payments' 
+                : 'Net amount you owe your roommates'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-7 glass-card rounded-2xl p-6 space-y-6 border border-slate-800/80">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center space-x-2">
+                <span>Weekly & Monthly Overview</span>
+              </h3>
+              <p className="text-xs text-slate-400">Separation between shared room share and personal spending</p>
+            </div>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1 cursor-pointer"
+            >
+              <span>Full Analytics</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <th className="py-3 px-3">Category</th>
+                  <th className="py-3 px-3 text-right">This Week</th>
+                  <th className="py-3 px-3 text-right">This Month</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-sm">
+                <tr className="hover:bg-slate-800/30 transition">
+                  <td className="py-3.5 px-3 font-medium text-slate-200 flex items-center space-x-2">
+                    <Home className="w-4 h-4 text-emerald-400" />
+                    <span>🏠 Your room share</span>
+                  </td>
+                  <td className="py-3.5 px-3 text-right font-semibold text-slate-300">
+                    ₹{thisWeekRoomShare.toLocaleString('en-IN')}
+                  </td>
+                  <td className="py-3.5 px-3 text-right font-semibold text-slate-300">
+                    ₹{thisMonthRoomShare.toLocaleString('en-IN')}
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-slate-800/30 transition">
+                  <td className="py-3.5 px-3 font-medium text-slate-200 flex items-center space-x-2">
+                    <UserCheck className="w-4 h-4 text-blue-400" />
+                    <span>👤 Personal expenses</span>
+                  </td>
+                  <td className="py-3.5 px-3 text-right font-semibold text-slate-300">
+                    ₹{thisWeekPersonal.toLocaleString('en-IN')}
+                  </td>
+                  <td className="py-3.5 px-3 text-right font-semibold text-slate-300">
+                    ₹{thisMonthPersonal.toLocaleString('en-IN')}
+                  </td>
+                </tr>
+
+                <tr className="bg-slate-800/50 font-bold">
+                  <td className="py-4 px-3 text-white flex items-center space-x-2">
+                    <Wallet className="w-4 h-4 text-amber-400" />
+                    <span>💰 Total spending</span>
+                  </td>
+                  <td className="py-4 px-3 text-right text-emerald-400 text-base font-extrabold">
+                    ₹{thisWeekTotal.toLocaleString('en-IN')}
+                  </td>
+                  <td className="py-4 px-3 text-right text-emerald-400 text-base font-extrabold">
+                    ₹{thisMonthTotal.toLocaleString('en-IN')}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl flex items-start space-x-3">
+            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg shrink-0">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+            <div className="text-xs text-slate-300 space-y-1">
+              <p className="font-semibold text-slate-100">Calculated Expense Share</p>
+              <p className="text-slate-400">
+                Shared expenses paid by any roommate are automatically divided into 4 equal shares (or custom splits). Your calculated room share is added to your personal spending.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-5 glass-card rounded-2xl p-6 space-y-5 border border-slate-800/80">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div>
+              <h3 className="text-lg font-bold text-white">Category Spending</h3>
+              <p className="text-xs text-slate-400">Your total share per category</p>
+            </div>
+          </div>
+
+          <div className="space-y-3.5">
+            {categoriesList.map((cat) => {
+              const amount = categoryTotals[cat] || 0;
+              const percentage = Math.min(100, Math.round((amount / maxCategorySpend) * 100));
+              const Icon = categoryIcons[cat] || ShoppingBag;
+
+              return (
+                <div key={cat} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-slate-300 flex items-center space-x-2">
+                      <Icon className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{cat}</span>
+                    </span>
+                    <span className="text-slate-100 font-bold">
+                      ₹{amount.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-800/80 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-card rounded-2xl p-6 border border-slate-800/80 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-white">Recent Transactions</h3>
+            <p className="text-xs text-slate-400">Latest shared and personal expenses</p>
+          </div>
+          <button
+            onClick={() => setActiveTab('expenses')}
+            className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center space-x-1 cursor-pointer"
+          >
+            <span>View All</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="divide-y divide-slate-800/60">
+          {expenses.slice(0, 5).map((exp) => {
+            const payerMember = members.find((m) => m.id === exp.paidBy);
+            const userSplit = exp.splits.find((s) => s.memberId === currentUser.id);
+
+            return (
+              <div key={exp.id} className="py-3.5 flex items-center justify-between hover:bg-slate-800/20 px-2 rounded-xl transition">
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2.5 rounded-xl text-xs font-bold ${exp.type === 'SHARED' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
+                    {exp.type === 'SHARED' ? 'ROOM' : 'YOU'}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-200">{exp.title}</h4>
+                    <p className="text-xs text-slate-400">
+                      {exp.category} • Paid by {payerMember?.name.split(' ')[0]} • {exp.date}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <div className="text-sm font-bold text-white">
+                    ₹{exp.amount.toLocaleString('en-IN')}
+                  </div>
+                  {exp.type === 'SHARED' && (
+                    <div className="text-xs text-slate-400">
+                      Your share: <span className="text-emerald-400 font-semibold">₹{userSplit?.shareAmount || 0}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
