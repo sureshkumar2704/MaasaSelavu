@@ -13,7 +13,8 @@ import {
   Car, 
   Plus, 
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Film
 } from 'lucide-react';
 import { useExpense } from '../context/ExpenseContext';
 import type { Category } from '../types';
@@ -77,6 +78,7 @@ export const Dashboard: React.FC = () => {
     Shopping: ShoppingBag,
     Travel: Car,
     Cleaning: Home,
+    Entertainment: Film,
   };
 
   const categoriesList: Category[] = [
@@ -95,43 +97,51 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="glass-card rounded-2xl p-6 relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900/90 to-emerald-950/40 border border-slate-800">
-        <div className="absolute -right-10 -bottom-10 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+      
+      {/* Top Welcome Hero Banner */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900/90 to-emerald-950/30 border border-emerald-500/20 shadow-2xl">
+        <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute left-1/2 -top-20 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div>
-            <div className="flex items-center space-x-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-1">
-              <ShieldCheck className="w-4 h-4" />
+            <div className="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
+              <ShieldCheck className="w-3.5 h-3.5" />
               <span>Smart Roommate & Personal Ledger</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-              Welcome back, {currentUser.name.split(' ')[0]} 👋
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Welcome back, <span className="bg-gradient-to-r from-emerald-400 via-teal-200 to-cyan-300 bg-clip-text text-transparent">{currentUser.name.split(' ')[0]}</span> 👋
             </h2>
             <p className="text-slate-400 text-sm mt-1 max-w-xl">
               Track actual cash paid out versus your real share of room expenses. Never guess who owes whom at month end.
             </p>
           </div>
+
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setIsAddExpenseModalOpen(true)}
-              className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/20 text-sm transition transform hover:scale-[1.02] flex items-center space-x-2 cursor-pointer"
+              className="px-5 py-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black rounded-2xl shadow-xl shadow-emerald-500/25 text-sm transition transform hover:scale-[1.03] flex items-center space-x-2 cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 stroke-[3]" />
               <span>Log Expense</span>
             </button>
           </div>
         </div>
       </div>
 
+      {/* 3 Core Highlight Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-        <div className="glass-card glass-card-hover rounded-2xl p-6 relative overflow-hidden border border-slate-800/80">
+        
+        {/* 1. Cash Physically Paid */}
+        <div className="glass-card glass-card-hover rounded-3xl p-6 relative overflow-hidden border border-blue-500/20 bg-gradient-to-b from-slate-900/90 to-blue-950/20">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">1. Cash Paid Out</span>
-            <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl">
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-300">1. Cash Paid Out</span>
+            <div className="p-3 bg-blue-500/15 text-blue-400 rounded-2xl border border-blue-500/30">
               <Wallet className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4">
-            <div className="text-3xl font-black text-white">
+            <div className="text-3xl font-black text-white tracking-tight">
               ₹{totalCashPaid.toLocaleString('en-IN')}
             </div>
             <p className="text-xs text-slate-400 mt-1">
@@ -140,15 +150,16 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-card glass-card-hover rounded-2xl p-6 relative overflow-hidden border border-slate-800/80">
+        {/* 2. Actual Spend Burden */}
+        <div className="glass-card glass-card-hover rounded-3xl p-6 relative overflow-hidden border border-emerald-500/20 bg-gradient-to-b from-slate-900/90 to-emerald-950/20">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">2. Your Actual Expense</span>
-            <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">2. Your Actual Expense</span>
+            <div className="p-3 bg-emerald-500/15 text-emerald-400 rounded-2xl border border-emerald-500/30">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4">
-            <div className="text-3xl font-black text-emerald-400">
+            <div className="text-3xl font-black text-emerald-400 tracking-tight">
               ₹{currentUserBurden.toLocaleString('en-IN')}
             </div>
             <p className="text-xs text-slate-400 mt-1">
@@ -157,15 +168,16 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-card glass-card-hover rounded-2xl p-6 relative overflow-hidden border border-slate-800/80">
+        {/* 3. Net Recoverable / Roommate Balance */}
+        <div className={`glass-card glass-card-hover rounded-3xl p-6 relative overflow-hidden border ${currentUserRecoverable >= 0 ? 'border-teal-500/20 bg-gradient-to-b from-slate-900/90 to-teal-950/20' : 'border-rose-500/20 bg-gradient-to-b from-slate-900/90 to-rose-950/20'}`}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">3. Net Room Balance</span>
-            <div className={`p-2.5 rounded-xl ${currentUserRecoverable >= 0 ? 'bg-teal-500/10 text-teal-400' : 'bg-rose-500/10 text-rose-400'}`}>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-300">3. Net Room Balance</span>
+            <div className={`p-3 rounded-2xl border ${currentUserRecoverable >= 0 ? 'bg-teal-500/15 text-teal-400 border-teal-500/30' : 'bg-rose-500/15 text-rose-400 border-rose-500/30'}`}>
               {currentUserRecoverable >= 0 ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
             </div>
           </div>
           <div className="mt-4">
-            <div className={`text-3xl font-black ${currentUserRecoverable >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
+            <div className={`text-3xl font-black tracking-tight ${currentUserRecoverable >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
               {currentUserRecoverable >= 0 ? `+₹${currentUserRecoverable.toLocaleString('en-IN')}` : `-₹${Math.abs(currentUserRecoverable).toLocaleString('en-IN')}`}
             </div>
             <p className="text-xs text-slate-400 mt-1">
@@ -175,11 +187,15 @@ export const Dashboard: React.FC = () => {
             </p>
           </div>
         </div>
+
       </div>
 
+      {/* Main Grid: Weekly/Monthly Overview & Category Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-7 glass-card rounded-2xl p-6 space-y-6 border border-slate-800/80">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        
+        {/* Left Column: Weekly & Monthly Summary Table */}
+        <div className="lg:col-span-7 glass-card rounded-3xl p-6 space-y-6 border border-slate-800">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
             <div>
               <h3 className="text-lg font-bold text-white flex items-center space-x-2">
                 <span>Weekly & Monthly Overview</span>
@@ -206,40 +222,40 @@ export const Dashboard: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-sm">
                 <tr className="hover:bg-slate-800/30 transition">
-                  <td className="py-3.5 px-3 font-medium text-slate-200 flex items-center space-x-2">
-                    <Home className="w-4 h-4 text-emerald-400" />
+                  <td className="py-3.5 px-3 font-semibold text-indigo-300 flex items-center space-x-2">
+                    <Home className="w-4 h-4 text-indigo-400" />
                     <span>🏠 Your room share</span>
                   </td>
-                  <td className="py-3.5 px-3 text-right font-semibold text-slate-300">
+                  <td className="py-3.5 px-3 text-right font-bold text-slate-200">
                     ₹{thisWeekRoomShare.toLocaleString('en-IN')}
                   </td>
-                  <td className="py-3.5 px-3 text-right font-semibold text-slate-300">
+                  <td className="py-3.5 px-3 text-right font-bold text-slate-200">
                     ₹{thisMonthRoomShare.toLocaleString('en-IN')}
                   </td>
                 </tr>
 
                 <tr className="hover:bg-slate-800/30 transition">
-                  <td className="py-3.5 px-3 font-medium text-slate-200 flex items-center space-x-2">
-                    <UserCheck className="w-4 h-4 text-blue-400" />
+                  <td className="py-3.5 px-3 font-semibold text-cyan-300 flex items-center space-x-2">
+                    <UserCheck className="w-4 h-4 text-cyan-400" />
                     <span>👤 Personal expenses</span>
                   </td>
-                  <td className="py-3.5 px-3 text-right font-semibold text-slate-300">
+                  <td className="py-3.5 px-3 text-right font-bold text-slate-200">
                     ₹{thisWeekPersonal.toLocaleString('en-IN')}
                   </td>
-                  <td className="py-3.5 px-3 text-right font-semibold text-slate-300">
+                  <td className="py-3.5 px-3 text-right font-bold text-slate-200">
                     ₹{thisMonthPersonal.toLocaleString('en-IN')}
                   </td>
                 </tr>
 
-                <tr className="bg-slate-800/50 font-bold">
+                <tr className="bg-gradient-to-r from-slate-900 via-slate-800/50 to-slate-900 font-bold">
                   <td className="py-4 px-3 text-white flex items-center space-x-2">
                     <Wallet className="w-4 h-4 text-amber-400" />
                     <span>💰 Total spending</span>
                   </td>
-                  <td className="py-4 px-3 text-right text-emerald-400 text-base font-extrabold">
+                  <td className="py-4 px-3 text-right text-emerald-400 text-base font-black">
                     ₹{thisWeekTotal.toLocaleString('en-IN')}
                   </td>
-                  <td className="py-4 px-3 text-right text-emerald-400 text-base font-extrabold">
+                  <td className="py-4 px-3 text-right text-emerald-400 text-base font-black">
                     ₹{thisMonthTotal.toLocaleString('en-IN')}
                   </td>
                 </tr>
@@ -247,12 +263,12 @@ export const Dashboard: React.FC = () => {
             </table>
           </div>
 
-          <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl flex items-start space-x-3">
-            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg shrink-0">
+          <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-start space-x-3">
+            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl shrink-0 border border-emerald-500/20">
               <TrendingUp className="w-4 h-4" />
             </div>
             <div className="text-xs text-slate-300 space-y-1">
-              <p className="font-semibold text-slate-100">Calculated Expense Share</p>
+              <p className="font-bold text-slate-100">Calculated Expense Share</p>
               <p className="text-slate-400">
                 Shared expenses paid by any roommate are automatically divided into 4 equal shares (or custom splits). Your calculated room share is added to your personal spending.
               </p>
@@ -260,8 +276,9 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="lg:col-span-5 glass-card rounded-2xl p-6 space-y-5 border border-slate-800/80">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        {/* Right Column: Category Breakdown */}
+        <div className="lg:col-span-5 glass-card rounded-3xl p-6 space-y-5 border border-slate-800">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
             <div>
               <h3 className="text-lg font-bold text-white">Category Spending</h3>
               <p className="text-xs text-slate-400">Your total share per category</p>
@@ -285,9 +302,9 @@ export const Dashboard: React.FC = () => {
                       ₹{amount.toLocaleString('en-IN')}
                     </span>
                   </div>
-                  <div className="w-full bg-slate-800/80 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
                     <div
-                      className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500"
+                      className="bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 h-full rounded-full transition-all duration-500"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -296,9 +313,11 @@ export const Dashboard: React.FC = () => {
             })}
           </div>
         </div>
+
       </div>
 
-      <div className="glass-card rounded-2xl p-6 border border-slate-800/80 space-y-4">
+      {/* Recent Activity Feed */}
+      <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-bold text-white">Recent Transactions</h3>
@@ -313,40 +332,47 @@ export const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        <div className="divide-y divide-slate-800/60">
-          {expenses.slice(0, 5).map((exp) => {
-            const payerMember = members.find((m) => m.id === exp.paidBy);
-            const userSplit = exp.splits.find((s) => s.memberId === currentUser.id);
+        {expenses.length === 0 ? (
+          <div className="p-8 text-center text-xs text-slate-500 bg-slate-900/40 border border-slate-800 rounded-2xl">
+            No expenses logged yet. Click "Log Expense" to add your first transaction.
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-800/60">
+            {expenses.slice(0, 5).map((exp) => {
+              const payerMember = members.find((m) => m.id === exp.paidBy);
+              const userSplit = exp.splits.find((s) => s.memberId === currentUser.id);
 
-            return (
-              <div key={exp.id} className="py-3.5 flex items-center justify-between hover:bg-slate-800/20 px-2 rounded-xl transition">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2.5 rounded-xl text-xs font-bold ${exp.type === 'SHARED' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
-                    {exp.type === 'SHARED' ? 'ROOM' : 'YOU'}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-slate-200">{exp.title}</h4>
-                    <p className="text-xs text-slate-400">
-                      {exp.category} • Paid by {payerMember?.name.split(' ')[0]} • {exp.date}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <div className="text-sm font-bold text-white">
-                    ₹{exp.amount.toLocaleString('en-IN')}
-                  </div>
-                  {exp.type === 'SHARED' && (
-                    <div className="text-xs text-slate-400">
-                      Your share: <span className="text-emerald-400 font-semibold">₹{userSplit?.shareAmount || 0}</span>
+              return (
+                <div key={exp.id} className="py-3.5 flex items-center justify-between hover:bg-slate-800/30 px-3 rounded-2xl transition">
+                  <div className="flex items-center space-x-3.5">
+                    <div className={`px-3 py-2 rounded-xl text-xs font-extrabold ${exp.type === 'SHARED' ? 'badge-shared' : 'badge-personal'}`}>
+                      {exp.type === 'SHARED' ? 'ROOM' : 'YOU'}
                     </div>
-                  )}
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-100">{exp.category}</h4>
+                      <p className="text-xs text-slate-400">
+                        Paid by {payerMember?.name.split(' ')[0]} • {exp.date}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-sm font-black text-white">
+                      ₹{exp.amount.toLocaleString('en-IN')}
+                    </div>
+                    {exp.type === 'SHARED' && (
+                      <div className="text-xs text-slate-400">
+                        Your share: <span className="text-emerald-400 font-bold">₹{userSplit?.shareAmount || 0}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
     </div>
   );
 };
