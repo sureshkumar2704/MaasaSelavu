@@ -128,64 +128,64 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 3 Core Highlight Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+      {/* 3 Core Highlight Metric Cards - Side by Side Grid on Mobile */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-6">
         
         {/* 1. Cash Physically Paid */}
-        <div className="glass-card glass-card-hover rounded-3xl p-6 border border-blue-500/30 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-blue-950/25 flex flex-col justify-between space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20">
-              1. Cash Paid Out
+        <div className="glass-card glass-card-hover rounded-2xl sm:rounded-3xl p-3 sm:p-6 border border-blue-500/30 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-blue-950/25 flex flex-col justify-between space-y-2 sm:space-y-4 shadow-xl">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[9px] xs:text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg border border-blue-500/20 truncate">
+              Cash Paid
             </span>
-            <div className="p-2.5 bg-blue-500/15 text-blue-400 rounded-2xl border border-blue-500/30 shadow-md">
-              <Wallet className="w-5 h-5" />
+            <div className="p-1.5 sm:p-2.5 bg-blue-500/15 text-blue-400 rounded-xl sm:rounded-2xl border border-blue-500/30 shadow-md shrink-0">
+              <Wallet className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div>
-            <div className="text-3xl sm:text-4xl font-black text-white tracking-tight font-mono">
+            <div className="text-sm xs:text-base sm:text-3xl lg:text-4xl font-black text-white tracking-tight font-mono truncate">
               ₹{totalCashPaid.toLocaleString('en-IN')}
             </div>
-            <p className="text-[11px] font-medium text-slate-400 mt-1">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 mt-1 hidden sm:block">
               Physical cash/UPI sent directly from your bank
             </p>
           </div>
         </div>
 
         {/* 2. Actual Spend Burden */}
-        <div className="glass-card glass-card-hover rounded-3xl p-6 border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-emerald-950/25 flex flex-col justify-between space-y-4 shadow-xl">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-              2. Your Actual Expense
+        <div className="glass-card glass-card-hover rounded-2xl sm:rounded-3xl p-3 sm:p-6 border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-emerald-950/25 flex flex-col justify-between space-y-2 sm:space-y-4 shadow-xl">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[9px] xs:text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg border border-emerald-500/20 truncate">
+              Your Expense
             </span>
-            <div className="p-2.5 bg-emerald-500/15 text-emerald-400 rounded-2xl border border-emerald-500/30 shadow-md">
-              <TrendingUp className="w-5 h-5" />
+            <div className="p-1.5 sm:p-2.5 bg-emerald-500/15 text-emerald-400 rounded-xl sm:rounded-2xl border border-emerald-500/30 shadow-md shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div>
-            <div className="text-3xl sm:text-4xl font-black text-emerald-400 tracking-tight font-mono">
+            <div className="text-sm xs:text-base sm:text-3xl lg:text-4xl font-black text-emerald-400 tracking-tight font-mono truncate">
               ₹{currentUserBurden.toLocaleString('en-IN')}
             </div>
-            <p className="text-[11px] font-medium text-slate-400 mt-1">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 mt-1 hidden sm:block">
               Personal expenses + your calculated room share
             </p>
           </div>
         </div>
 
         {/* 3. Net Recoverable / Roommate Balance */}
-        <div className={`glass-card glass-card-hover rounded-3xl p-6 border flex flex-col justify-between space-y-4 shadow-xl ${currentUserRecoverable >= 0 ? 'border-teal-500/30 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-teal-950/25' : 'border-rose-500/30 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-rose-950/25'}`}>
-          <div className="flex items-center justify-between">
-            <span className={`text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${currentUserRecoverable >= 0 ? 'text-teal-400 bg-teal-500/10 border-teal-500/20' : 'text-rose-400 bg-rose-500/10 border-rose-500/20'}`}>
-              3. Net Room Balance
+        <div className={`glass-card glass-card-hover rounded-2xl sm:rounded-3xl p-3 sm:p-6 border flex flex-col justify-between space-y-2 sm:space-y-4 shadow-xl ${currentUserRecoverable >= 0 ? 'border-teal-500/30 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-teal-950/25' : 'border-rose-500/30 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-rose-950/25'}`}>
+          <div className="flex items-center justify-between gap-1">
+            <span className={`text-[9px] xs:text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg border truncate ${currentUserRecoverable >= 0 ? 'text-teal-400 bg-teal-500/10 border-teal-500/20' : 'text-rose-400 bg-rose-500/10 border-rose-500/20'}`}>
+              Room Balance
             </span>
-            <div className={`p-2.5 rounded-2xl border shadow-md ${currentUserRecoverable >= 0 ? 'bg-teal-500/15 text-teal-400 border-teal-500/30' : 'bg-rose-500/15 text-rose-400 border-rose-500/30'}`}>
-              {currentUserRecoverable >= 0 ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+            <div className={`p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl border shadow-md shrink-0 ${currentUserRecoverable >= 0 ? 'bg-teal-500/15 text-teal-400 border-teal-500/30' : 'bg-rose-500/15 text-rose-400 border-rose-500/30'}`}>
+              {currentUserRecoverable >= 0 ? <ArrowDownLeft className="w-3.5 h-3.5 sm:w-5 sm:h-5" /> : <ArrowUpRight className="w-3.5 h-3.5 sm:w-5 sm:h-5" />}
             </div>
           </div>
           <div>
-            <div className={`text-3xl sm:text-4xl font-black tracking-tight font-mono ${currentUserRecoverable >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
+            <div className={`text-sm xs:text-base sm:text-3xl lg:text-4xl font-black tracking-tight font-mono truncate ${currentUserRecoverable >= 0 ? 'text-teal-400' : 'text-rose-400'}`}>
               {currentUserRecoverable >= 0 ? `+₹${currentUserRecoverable.toLocaleString('en-IN')}` : `-₹${Math.abs(currentUserRecoverable).toLocaleString('en-IN')}`}
             </div>
-            <p className="text-[11px] font-medium text-slate-400 mt-1">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 mt-1 hidden sm:block">
               {currentUserRecoverable >= 0 
                 ? 'Net money roommates owe you for shared bills' 
                 : 'Net balance you owe to your roommates'}
