@@ -1,5 +1,24 @@
 import React, { useState } from 'react';
-import { X, Users, User, Calculator, Check, AlertCircle } from 'lucide-react';
+import { 
+  X, 
+  Users, 
+  User, 
+  Calculator, 
+  Check, 
+  AlertCircle,
+  Utensils,
+  Zap,
+  Wifi,
+  Droplets,
+  ShoppingBag,
+  Home,
+  Car,
+  Film,
+  Shield,
+  Tag,
+  HelpCircle,
+  Plus
+} from 'lucide-react';
 import { useExpense } from '../context/ExpenseContext';
 import type { Category, ExpenseType, ExpenseSplit } from '../types';
 
@@ -24,22 +43,27 @@ export const AddExpenseModal: React.FC = () => {
 
   if (!isAddExpenseModalOpen) return null;
 
-  const categories: Category[] = [
-    'Food',
-    'Electricity',
-    'Wi-Fi',
-    'Water',
-    'Groceries',
-    'Cleaning',
-    'Shopping',
-    'Travel',
-    'Entertainment',
-    'Rent',
-    'Other',
+  const categoryOptions: { name: Category; icon: any; color: string }[] = [
+    { name: 'Food', icon: Utensils, color: 'text-amber-400 border-amber-500/30 bg-amber-500/10' },
+    { name: 'Electricity', icon: Zap, color: 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' },
+    { name: 'Wi-Fi', icon: Wifi, color: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10' },
+    { name: 'Water', icon: Droplets, color: 'text-blue-400 border-blue-500/30 bg-blue-500/10' },
+    { name: 'Groceries', icon: ShoppingBag, color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' },
+    { name: 'Cleaning', icon: Home, color: 'text-teal-400 border-teal-500/30 bg-teal-500/10' },
+    { name: 'Shopping', icon: Tag, color: 'text-purple-400 border-purple-500/30 bg-purple-500/10' },
+    { name: 'Travel', icon: Car, color: 'text-indigo-400 border-indigo-500/30 bg-indigo-500/10' },
+    { name: 'Entertainment', icon: Film, color: 'text-rose-400 border-rose-500/30 bg-rose-500/10' },
+    { name: 'Rent', icon: Shield, color: 'text-red-400 border-red-500/30 bg-red-500/10' },
+    { name: 'Other', icon: HelpCircle, color: 'text-slate-400 border-slate-700 bg-slate-800/50' },
   ];
 
   const numAmount = parseFloat(amount) || 0;
   const equalShare = members.length > 0 ? Math.round(numAmount / members.length) : 0;
+
+  const handleQuickAddAmount = (addVal: number) => {
+    const currentVal = parseFloat(amount) || 0;
+    setAmount((currentVal + addVal).toString());
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +86,7 @@ export const AddExpenseModal: React.FC = () => {
     }
 
     addExpense({
-      title: category, // Title defaults directly to Category!
+      title: category,
       amount: numAmount,
       type,
       category,
@@ -84,10 +108,12 @@ export const AddExpenseModal: React.FC = () => {
       <div className="glass-modal rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-700/60 max-h-[90vh] flex flex-col">
         
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+        <div className="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/60">
           <div>
-            <h3 className="text-lg font-bold text-white">Log Expense</h3>
-            <p className="text-xs text-slate-400">Select category and amount to record expense</p>
+            <h3 className="text-lg font-black text-white flex items-center space-x-2">
+              <span>Log New Expense</span>
+            </h3>
+            <p className="text-xs text-slate-400">Record shared room bills or personal purchases</p>
           </div>
           <button
             onClick={() => setIsAddExpenseModalOpen(false)}
@@ -99,18 +125,18 @@ export const AddExpenseModal: React.FC = () => {
 
         {/* Expense Type Switcher Tabs */}
         <div className="px-6 pt-4 bg-slate-900/40">
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-2xl border border-slate-800">
+          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900/90 rounded-2xl border border-slate-800">
             <button
               type="button"
               onClick={() => setType('SHARED')}
-              className={`flex items-center justify-center space-x-2 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+              className={`flex items-center justify-center space-x-2 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer ${
                 type === 'SHARED'
-                  ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md'
+                  ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md shadow-indigo-500/20'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <Users className="w-4 h-4" />
-              <span>Shared Room Expense</span>
+              <span>Shared Room Bill</span>
             </button>
 
             <button
@@ -119,9 +145,9 @@ export const AddExpenseModal: React.FC = () => {
                 setType('PERSONAL');
                 setPaidBy(currentUser.id);
               }}
-              className={`flex items-center justify-center space-x-2 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+              className={`flex items-center justify-center space-x-2 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer ${
                 type === 'PERSONAL'
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md'
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -132,86 +158,129 @@ export const AddExpenseModal: React.FC = () => {
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
           
-          {/* Category & Amount */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Category *
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as Category)}
-                className="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm font-bold"
-              >
-                {categories.map((cat) => (
-                  <option key={cat} value={cat} className="bg-slate-900 text-white">
-                    {cat}
-                  </option>
-                ))}
-              </select>
+          {/* Visual Category Picker Grid */}
+          <div>
+            <label className="block text-xs font-extrabold text-slate-300 uppercase tracking-wider mb-2">
+              Select Category *
+            </label>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {categoryOptions.map((item) => {
+                const Icon = item.icon;
+                const isSelected = category === item.name;
+                return (
+                  <button
+                    key={item.name}
+                    type="button"
+                    onClick={() => setCategory(item.name)}
+                    className={`p-2.5 rounded-xl border flex flex-col items-center justify-center space-y-1.5 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-500/20 ring-1 ring-emerald-500/50 scale-[1.03]'
+                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                    }`}
+                  >
+                    <div className={`p-1.5 rounded-lg border ${item.color}`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <span className="text-[11px] font-bold truncate max-w-full">{item.name}</span>
+                  </button>
+                );
+              })}
             </div>
+          </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+          {/* Amount & Quick Chips */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-extrabold text-slate-300 uppercase tracking-wider">
                 Amount (₹) *
               </label>
+              <span className="text-[11px] text-slate-500 font-mono">INR ₹</span>
+            </div>
+
+            <div className="relative">
+              <span className="absolute left-4 top-3 text-lg font-black text-emerald-400">₹</span>
               <input
                 type="number"
                 required
                 min="1"
                 step="any"
-                placeholder="e.g. 2400"
+                placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm font-bold"
+                className="w-full pl-9 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xl font-black tracking-tight"
               />
+            </div>
+
+            {/* Quick Amount Preset Chips */}
+            <div className="flex items-center space-x-1.5 pt-1 overflow-x-auto">
+              <span className="text-[10px] font-bold uppercase text-slate-500 shrink-0">Quick Add:</span>
+              {[50, 100, 200, 500, 1000].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => handleQuickAddAmount(preset)}
+                  className="px-2.5 py-1 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition flex items-center space-x-0.5 cursor-pointer shrink-0"
+                >
+                  <Plus className="w-3 h-3 text-emerald-400" />
+                  <span>₹{preset}</span>
+                </button>
+              ))}
+              {amount && (
+                <button
+                  type="button"
+                  onClick={() => setAmount('')}
+                  className="px-2 py-1 text-[10px] font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition shrink-0 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
 
           {/* Paid By & Date */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-300 uppercase tracking-wider mb-1.5">
                 Paid By
               </label>
               <select
                 value={paidBy}
                 onChange={(e) => setPaidBy(e.target.value)}
                 disabled={type === 'PERSONAL'}
-                className="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm disabled:opacity-60"
+                className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xs font-bold disabled:opacity-60"
               >
                 {members.map((m) => (
                   <option key={m.id} value={m.id} className="bg-slate-900 text-white">
-                    {m.name}
+                    {m.name} {m.isCurrentUser && '(You)'}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-extrabold text-slate-300 uppercase tracking-wider mb-1.5">
                 Date
               </label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm"
+                className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xs font-bold"
               />
             </div>
           </div>
 
           {/* Shared Split Strategy (If SHARED) */}
           {type === 'SHARED' && (
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-3">
+            <div className="p-4 bg-slate-900/80 border border-indigo-500/20 rounded-2xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                <span className="text-xs font-extrabold text-indigo-300 uppercase tracking-wider flex items-center space-x-1.5">
                   <Calculator className="w-4 h-4 text-indigo-400" />
-                  <span>Split Strategy ({members.length} Roommates)</span>
+                  <span>Split Calculation ({members.length} Roommates)</span>
                 </span>
-                <label className="flex items-center space-x-2 text-xs text-slate-400 cursor-pointer">
+                <label className="flex items-center space-x-2 text-xs text-slate-400 cursor-pointer font-bold">
                   <input
                     type="checkbox"
                     checked={isCustomSplit}
@@ -224,18 +293,18 @@ export const AddExpenseModal: React.FC = () => {
 
               {!isCustomSplit ? (
                 <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300 space-y-1">
-                  <p className="font-semibold">Equally divided among {members.length} roommates</p>
-                  <p className="text-indigo-400">
-                    ₹{numAmount} ÷ {members.length} = <span className="font-bold text-white">₹{equalShare} / person</span>
+                  <p className="font-bold">Equally divided among {members.length} roommates</p>
+                  <p className="text-indigo-400 font-mono">
+                    ₹{numAmount} ÷ {members.length} = <span className="font-extrabold text-white">₹{equalShare} / person</span>
                   </p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {members.map((m) => (
                     <div key={m.id} className="flex items-center justify-between text-xs">
-                      <span className="text-slate-300">{m.name}</span>
+                      <span className="text-slate-300 font-bold">{m.name}</span>
                       <div className="relative w-28">
-                        <span className="absolute left-2.5 top-1.5 text-slate-500">₹</span>
+                        <span className="absolute left-2.5 top-1.5 text-slate-500 font-bold">₹</span>
                         <input
                           type="number"
                           placeholder={equalShare.toString()}
@@ -254,17 +323,17 @@ export const AddExpenseModal: React.FC = () => {
               {numAmount > 0 && (
                 <div className="mt-2 pt-2 border-t border-slate-800 text-xs space-y-1">
                   {paidBy === currentUser.id ? (
-                    <div className="text-emerald-400 flex items-center space-x-1.5 font-medium">
-                      <Check className="w-3.5 h-3.5" />
+                    <div className="text-emerald-400 flex items-center space-x-1.5 font-bold">
+                      <Check className="w-3.5 h-3.5 shrink-0" />
                       <span>
-                        You paid ₹{numAmount}. Your share is ₹{equalShare}. Others owe you ₹{numAmount - equalShare}.
+                        You paid ₹{numAmount}. Your share: ₹{equalShare}. Roommates owe you ₹{numAmount - equalShare}.
                       </span>
                     </div>
                   ) : (
-                    <div className="text-amber-400 flex items-center space-x-1.5 font-medium">
-                      <AlertCircle className="w-3.5 h-3.5" />
+                    <div className="text-amber-400 flex items-center space-x-1.5 font-bold">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                       <span>
-                        Paid by {selectedPayer?.name.split(' ')[0]}. Your room share is ₹{equalShare}.
+                        Paid by {selectedPayer?.name.split(' ')[0]}. Your share: ₹{equalShare}.
                       </span>
                     </div>
                   )}
@@ -275,15 +344,15 @@ export const AddExpenseModal: React.FC = () => {
 
           {/* Description / Notes */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-extrabold text-slate-300 uppercase tracking-wider mb-1.5">
               Description / Notes (Optional)
             </label>
             <textarea
               rows={2}
-              placeholder="Add optional note or item details..."
+              placeholder="e.g. Swiggy order, Monthly Wi-Fi recharge..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm"
+              className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xs font-medium"
             />
           </div>
 
@@ -291,13 +360,13 @@ export const AddExpenseModal: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsAddExpenseModalOpen(false)}
-              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-sm transition cursor-pointer"
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl text-sm transition shadow-lg shadow-emerald-500/20 cursor-pointer"
+              className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 hover:from-emerald-400 hover:to-cyan-300 text-slate-950 font-black rounded-xl text-xs transition-all shadow-lg shadow-emerald-500/20 cursor-pointer transform hover:scale-105 active:scale-95"
             >
               Save Expense
             </button>
@@ -307,3 +376,4 @@ export const AddExpenseModal: React.FC = () => {
     </div>
   );
 };
+

@@ -1,10 +1,12 @@
 import React from 'react';
 import { 
-  PieChart, 
   Calendar, 
   Home, 
   UserCheck, 
-  ArrowUpRight
+  ArrowUpRight,
+  Sparkles,
+  TrendingUp,
+  BarChart3
 } from 'lucide-react';
 import { useExpense } from '../context/ExpenseContext';
 
@@ -76,143 +78,155 @@ export const AnalyticsView: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="glass-card rounded-2xl p-6 border border-slate-800 bg-gradient-to-r from-slate-900 via-emerald-950/20 to-slate-900">
-        <div className="flex items-center space-x-3 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-2">
-          <PieChart className="w-4 h-4" />
-          <span>Financial Analytics & Insights</span>
+      {/* Header Banner */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-emerald-500/30 bg-gradient-to-r from-slate-900 via-emerald-950/30 to-slate-900 shadow-2xl">
+        <div className="flex items-center space-x-2 text-emerald-400 text-xs font-black uppercase tracking-wider mb-2">
+          <Sparkles className="w-4 h-4" />
+          <span>Financial Intelligence Reports</span>
         </div>
-        <h2 className="text-2xl font-black text-white">Expense Reports</h2>
-        <p className="text-slate-400 text-sm mt-1 max-w-xl">
-          Automated weekly and monthly analysis separating your shared room share from personal spending.
+        <h2 className="text-2xl sm:text-3xl font-black text-white">Analytics & Insights</h2>
+        <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-xl font-medium">
+          Automated weekly and monthly reporting isolating your 1/{members.length}th room share from personal discretionary spend.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-6 glass-card rounded-2xl p-6 border border-slate-800 space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        
+        {/* Left Column: Weekly Expense Report Card */}
+        <div className="lg:col-span-6 glass-card rounded-3xl p-6 border border-slate-800/80 space-y-6 shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center space-x-2">
+              <h3 className="text-lg font-black text-white flex items-center space-x-2.5">
                 <Calendar className="w-5 h-5 text-emerald-400" />
                 <span>Weekly Expense Report</span>
               </h3>
-              <p className="text-xs text-slate-400">Current week itemized breakdown</p>
+              <p className="text-xs text-slate-400 font-medium">Current week itemized spending statement</p>
             </div>
-            <span className="px-3 py-1 bg-slate-800 text-emerald-400 rounded-full text-xs font-bold border border-slate-700">
+            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-xs font-black border border-emerald-500/20">
               This Week
             </span>
           </div>
 
-          <div className="space-y-5 font-mono text-xs text-slate-300 bg-slate-950/60 p-5 rounded-2xl border border-slate-800">
+          <div className="space-y-5 text-xs text-slate-300 bg-slate-950/70 p-5 rounded-2xl border border-slate-800/80">
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-slate-200 font-bold border-b border-slate-800/80 pb-1">
-                <span className="flex items-center space-x-1.5 font-sans">
-                  <Home className="w-4 h-4 text-emerald-400" />
-                  <span>Room expenses</span>
+              <div className="flex items-center justify-between text-slate-200 font-bold border-b border-slate-800/80 pb-2">
+                <span className="flex items-center space-x-2 text-indigo-300">
+                  <Home className="w-4 h-4 text-indigo-400" />
+                  <span className="font-black uppercase tracking-wider text-[11px]">Room Shared Expenses</span>
                 </span>
               </div>
-              <div className="pl-4 space-y-1">
-                <div className="flex justify-between"><span>Food</span><span>₹750</span></div>
-                <div className="flex justify-between"><span>Electricity</span><span>₹300</span></div>
-                <div className="flex justify-between"><span>Wi-Fi</span><span>₹100</span></div>
-                <div className="flex justify-between"><span>Groceries</span><span>₹450</span></div>
-                <div className="flex justify-between"><span>Other</span><span>₹250</span></div>
+              <div className="pl-3 space-y-1.5 font-medium text-slate-400">
+                <div className="flex justify-between"><span>Food Order</span><span className="font-mono text-slate-200">₹750</span></div>
+                <div className="flex justify-between"><span>Electricity Bill</span><span className="font-mono text-slate-200">₹300</span></div>
+                <div className="flex justify-between"><span>Wi-Fi Bill</span><span className="font-mono text-slate-200">₹100</span></div>
+                <div className="flex justify-between"><span>Groceries</span><span className="font-mono text-slate-200">₹450</span></div>
+                <div className="flex justify-between"><span>Other Items</span><span className="font-mono text-slate-200">₹250</span></div>
               </div>
-              <div className="flex justify-between text-emerald-400 font-bold pt-1 border-t border-slate-800">
-                <span className="font-sans">Your room share</span>
-                <span>₹{roomShareThisWeek.toLocaleString('en-IN')}</span>
+              <div className="flex justify-between text-indigo-300 font-black pt-2 border-t border-slate-800/80 text-xs">
+                <span>Calculated Room Share</span>
+                <span className="font-mono">₹{roomShareThisWeek.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
             <div className="space-y-2 pt-2">
-              <div className="flex items-center justify-between text-slate-200 font-bold border-b border-slate-800/80 pb-1">
-                <span className="flex items-center space-x-1.5 font-sans">
-                  <UserCheck className="w-4 h-4 text-blue-400" />
-                  <span>Personal expenses</span>
+              <div className="flex items-center justify-between text-slate-200 font-bold border-b border-slate-800/80 pb-2">
+                <span className="flex items-center space-x-2 text-cyan-300">
+                  <UserCheck className="w-4 h-4 text-cyan-400" />
+                  <span className="font-black uppercase tracking-wider text-[11px]">Personal Expenses</span>
                 </span>
               </div>
-              <div className="pl-4 space-y-1">
-                <div className="flex justify-between"><span>Food</span><span>₹500</span></div>
-                <div className="flex justify-between"><span>Travel</span><span>₹350</span></div>
-                <div className="flex justify-between"><span>Shopping</span><span>₹250</span></div>
-                <div className="flex justify-between"><span>Other</span><span>₹100</span></div>
+              <div className="pl-3 space-y-1.5 font-medium text-slate-400">
+                <div className="flex justify-between"><span>Dining</span><span className="font-mono text-slate-200">₹500</span></div>
+                <div className="flex justify-between"><span>Travel / Fuel</span><span className="font-mono text-slate-200">₹350</span></div>
+                <div className="flex justify-between"><span>Shopping</span><span className="font-mono text-slate-200">₹250</span></div>
+                <div className="flex justify-between"><span>Other</span><span className="font-mono text-slate-200">₹100</span></div>
               </div>
-              <div className="flex justify-between text-blue-400 font-bold pt-1 border-t border-slate-800">
-                <span className="font-sans">Personal total</span>
-                <span>₹{personalThisWeek.toLocaleString('en-IN')}</span>
+              <div className="flex justify-between text-cyan-300 font-black pt-2 border-t border-slate-800/80 text-xs">
+                <span>Personal Total</span>
+                <span className="font-mono">₹{personalThisWeek.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
-            <div className="pt-3 border-t-2 border-slate-700 flex justify-between text-base font-bold text-white font-sans">
-              <span>TOTAL</span>
-              <span className="text-emerald-400">₹{thisWeekTotal.toLocaleString('en-IN')}</span>
+            <div className="pt-3 border-t-2 border-slate-800 flex justify-between text-base font-black text-white">
+              <span>WEEKLY TOTAL</span>
+              <span className="text-emerald-400 font-mono text-lg">₹{thisWeekTotal.toLocaleString('en-IN')}</span>
             </div>
           </div>
 
-          <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between">
+          <div className="p-4 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between shadow-md">
             <div className="space-y-1">
-              <span className="text-xs font-bold text-slate-400 uppercase">Weekly Comparison</span>
-              <div className="flex items-center space-x-4 text-xs font-semibold text-slate-200">
-                <span>This week: <strong className="text-white">₹{thisWeekTotal.toLocaleString('en-IN')}</strong></span>
-                <span>Last week: <strong className="text-white">₹{lastWeekTotal.toLocaleString('en-IN')}</strong></span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Weekly Trend</span>
+              <div className="flex items-center space-x-4 text-xs font-bold text-slate-200">
+                <span>This week: <strong className="text-white font-mono">₹{thisWeekTotal.toLocaleString('en-IN')}</strong></span>
+                <span>Last week: <strong className="text-slate-400 font-mono">₹{lastWeekTotal.toLocaleString('en-IN')}</strong></span>
               </div>
             </div>
 
-            <div className="flex items-center space-x-1 px-3 py-1.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-bold">
+            <div className="flex items-center space-x-1 px-3 py-1.5 bg-rose-500/15 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-black">
               <ArrowUpRight className="w-4 h-4" />
               <span>+₹{change}</span>
             </div>
           </div>
         </div>
 
+        {/* Right Column: Monthly Overview & Category Ranking */}
         <div className="lg:col-span-6 space-y-6">
-          <div className="glass-card rounded-2xl p-6 border border-slate-800 space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-lg font-bold text-white">AUGUST 2026</h3>
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Monthly Breakdown</span>
+          <div className="glass-card rounded-3xl p-6 border border-slate-800/80 space-y-5 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+              <h3 className="text-lg font-black text-white flex items-center space-x-2">
+                <BarChart3 className="w-5 h-5 text-indigo-400" />
+                <span>AUGUST 2026</span>
+              </h3>
+              <span className="text-[10px] font-black text-indigo-400 uppercase tracking-wider bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20">
+                Monthly Breakdown
+              </span>
             </div>
 
             <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl">
+              <div className="p-3.5 bg-slate-900/90 border border-slate-800/80 rounded-2xl">
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Shared Room</span>
-                <div className="text-base font-black text-emerald-400 mt-1">₹{monthlyRoomShare.toLocaleString('en-IN')}</div>
+                <div className="text-base font-black text-emerald-400 mt-1 font-mono">₹{monthlyRoomShare.toLocaleString('en-IN')}</div>
               </div>
-              <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl">
+              <div className="p-3.5 bg-slate-900/90 border border-slate-800/80 rounded-2xl">
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Personal</span>
-                <div className="text-base font-black text-blue-400 mt-1">₹{monthlyPersonal.toLocaleString('en-IN')}</div>
+                <div className="text-base font-black text-cyan-400 mt-1 font-mono">₹{monthlyPersonal.toLocaleString('en-IN')}</div>
               </div>
-              <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl">
+              <div className="p-3.5 bg-slate-900/90 border border-slate-800/80 rounded-2xl">
                 <span className="text-[10px] font-bold text-slate-400 uppercase">Total Spent</span>
-                <div className="text-base font-black text-amber-400 mt-1">₹{monthlyTotal.toLocaleString('en-IN')}</div>
+                <div className="text-base font-black text-amber-400 mt-1 font-mono">₹{monthlyTotal.toLocaleString('en-IN')}</div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
-              <div className="p-3 bg-slate-900/60 border border-slate-800/80 rounded-xl flex items-center justify-between">
-                <span className="text-slate-400 font-semibold">Average / day</span>
-                <span className="text-white font-extrabold">₹{dailyAverage}</span>
+            <div className="grid grid-cols-2 gap-3 pt-1 text-xs font-medium">
+              <div className="p-3 bg-slate-900/60 border border-slate-800/80 rounded-2xl flex items-center justify-between">
+                <span className="text-slate-400 font-bold">Average / day</span>
+                <span className="text-white font-black font-mono">₹{dailyAverage}</span>
               </div>
-              <div className="p-3 bg-slate-900/60 border border-slate-800/80 rounded-xl flex items-center justify-between">
-                <span className="text-slate-400 font-semibold">Average / week</span>
-                <span className="text-white font-extrabold">₹{weeklyAverage.toLocaleString('en-IN')}</span>
+              <div className="p-3 bg-slate-900/60 border border-slate-800/80 rounded-2xl flex items-center justify-between">
+                <span className="text-slate-400 font-bold">Average / week</span>
+                <span className="text-white font-black font-mono">₹{weeklyAverage.toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
 
-          <div className="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
-            <h3 className="text-lg font-bold text-white">Monthly Category Ranking</h3>
+          <div className="glass-card rounded-3xl p-6 border border-slate-800/80 space-y-4 shadow-xl">
+            <h3 className="text-lg font-black text-white flex items-center space-x-2">
+              <TrendingUp className="w-5 h-5 text-emerald-400" />
+              <span>Monthly Category Ranking</span>
+            </h3>
 
-            <div className="space-y-3 pt-1">
+            <div className="space-y-3.5 pt-1">
               {Object.entries(monthlyCategoryTotals).map(([cat, val]) => {
                 const pct = Math.round((val / maxMonthlyVal) * 100);
                 return (
-                  <div key={cat} className="space-y-1 text-xs">
-                    <div className="flex items-center justify-between font-semibold">
+                  <div key={cat} className="space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between font-bold">
                       <span className="text-slate-300">{cat}</span>
-                      <span className="text-slate-100 font-bold">₹{val.toLocaleString('en-IN')}</span>
+                      <span className="text-slate-100 font-black font-mono">₹{val.toLocaleString('en-IN')}</span>
                     </div>
-                    <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-800">
+                    <div className="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-800/80 p-0.5">
                       <div
-                        className="bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 h-full rounded-full transition-all duration-700"
+                        className="bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 h-full rounded-full transition-all duration-700 shadow-sm"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -226,3 +240,4 @@ export const AnalyticsView: React.FC = () => {
     </div>
   );
 };
+

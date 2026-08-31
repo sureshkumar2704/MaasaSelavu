@@ -8,7 +8,8 @@ import {
   PlusCircle, 
   RotateCcw,
   Wallet,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
 import { useExpense } from '../context/ExpenseContext';
 
@@ -23,7 +24,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
     activeTab, 
     setActiveTab, 
     setIsAddExpenseModalOpen, 
-    resetToDemoData 
+    resetToDemoData,
+    members
   } = useExpense();
 
   // Handle Edge Swipe Gesture (Swiping from leftmost edge to open, or swiping left to close)
@@ -45,13 +47,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
       const deltaX = endX - startX;
       const deltaY = Math.abs(endY - startY);
 
-      // Only trigger horizontal swipe if horizontal movement > vertical movement
       if (deltaY < 80) {
-        // Swipe Right from left edge (startX < 40px) opens sidebar
         if (!isOpen && startX < 40 && deltaX > 40) {
           onOpen();
         }
-        // Swipe Left anywhere when sidebar is open closes sidebar
         else if (isOpen && deltaX < -50) {
           onClose();
         }
@@ -82,15 +81,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
 
   return (
     <>
-      {/* Blurred Backdrop Overlay over the rest of the page when sidebar is open */}
+      {/* Blurred Backdrop Overlay */}
       {isOpen && (
         <div 
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-md transition-all duration-300 animate-fade-in"
+          className="fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-md transition-all duration-300 animate-fade-in"
         />
       )}
 
-      {/* Edge Swipe Touch Catch Bar on leftmost screen edge when sidebar is closed */}
+      {/* Edge Swipe Touch Catch Bar */}
       {!isOpen && (
         <div 
           onClick={onOpen}
@@ -106,7 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
         }`}
       >
         {/* Top Header & Brand Logo */}
-        <div className="p-6 space-y-6 overflow-y-auto">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="p-2.5 bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-400 rounded-xl shadow-lg shadow-emerald-500/25 text-slate-950 font-bold">
@@ -116,8 +115,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
                 <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-emerald-400 via-teal-200 to-indigo-300 bg-clip-text text-transparent">
                   MaasaSelavu
                 </h1>
-                <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider">
-                  Room & Personal
+                <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider flex items-center space-x-1">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  <span>Room & Personal</span>
                 </span>
               </div>
             </div>
@@ -136,7 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
               setIsAddExpenseModalOpen(true);
               onClose();
             }}
-            className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-extrabold rounded-2xl shadow-lg shadow-emerald-500/20 text-sm flex items-center justify-center space-x-2 transition transform hover:scale-[1.02] cursor-pointer"
+            className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 hover:from-emerald-400 hover:to-cyan-300 text-slate-950 font-black rounded-2xl shadow-lg shadow-emerald-500/20 text-sm flex items-center justify-center space-x-2 transition transform hover:scale-[1.02] cursor-pointer"
           >
             <PlusCircle className="w-4 h-4 stroke-[2.5]" />
             <span>Add New Expense</span>
@@ -153,7 +153,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
                 <button
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
-                  className={`w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-sm font-bold transition duration-200 cursor-pointer ${
+                  className={`w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer ${
                     isActive
                       ? 'bg-gradient-to-r from-emerald-500/20 to-indigo-500/20 border border-emerald-500/40 text-emerald-300 shadow-md shadow-emerald-500/10'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/80'
@@ -167,10 +167,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
           </nav>
         </div>
 
+        {/* Roommates Quick Glance */}
         <div className="p-6 border-t border-slate-900 space-y-4">
-          <div className="p-3.5 bg-slate-900/60 border border-slate-800/80 rounded-2xl text-xs text-slate-400 space-y-1">
-            <p className="font-bold text-slate-200">4 Roommates Ledger</p>
-            <p className="text-[11px] text-slate-500">Slide from left edge or tap 3-line icon anytime.</p>
+          <div className="p-3.5 bg-slate-900/60 border border-slate-800/80 rounded-2xl text-xs space-y-2">
+            <div className="flex items-center justify-between text-slate-300 font-bold">
+              <span>{members.length} Active Roommates</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-slow"></span>
+            </div>
+            <div className="flex items-center -space-x-2">
+              {members.map((m) => (
+                <div 
+                  key={m.id} 
+                  title={m.name} 
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center font-extrabold text-[10px] border-2 border-slate-950 shadow-md ${m.avatar}`}
+                >
+                  {m.name.substring(0, 2).toUpperCase()}
+                </div>
+              ))}
+            </div>
           </div>
 
           <button
@@ -178,7 +192,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
               resetToDemoData();
               onClose();
             }}
-            className="w-full py-2.5 px-3 flex items-center justify-center space-x-2 text-xs font-semibold text-slate-400 hover:text-slate-200 bg-slate-900/40 hover:bg-slate-900 border border-slate-800 rounded-xl transition cursor-pointer"
+            className="w-full py-2.5 px-3 flex items-center justify-center space-x-2 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/40 hover:bg-slate-900 border border-slate-800 rounded-xl transition cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Demo State</span>
@@ -189,3 +203,4 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
     </>
   );
 };
+
