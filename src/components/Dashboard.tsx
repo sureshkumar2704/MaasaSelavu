@@ -8,7 +8,6 @@ import {
   UserCheck, 
   Utensils, 
   Zap, 
-  Wifi, 
   ShoppingBag, 
   Car, 
   Plus, 
@@ -76,7 +75,6 @@ export const Dashboard: React.FC = () => {
   const categoryIcons: Record<string, any> = {
     Food: Utensils,
     Electricity: Zap,
-    'Wi-Fi': Wifi,
     Water: Droplets,
     Groceries: ShoppingBag,
     Shopping: ShoppingBasket,
@@ -88,7 +86,6 @@ export const Dashboard: React.FC = () => {
   const categoriesList: Category[] = [
     'Food',
     'Electricity',
-    'Wi-Fi',
     'Groceries',
     'Cleaning',
     'Shopping',

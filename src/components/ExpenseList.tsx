@@ -10,7 +10,6 @@ import {
   Plus,
   Utensils,
   Zap,
-  Wifi,
   Droplets,
   ShoppingBag,
   Home,
@@ -39,7 +38,6 @@ export const ExpenseList: React.FC = () => {
   const categoriesList: Category[] = [
     'Food',
     'Electricity',
-    'Wi-Fi',
     'Water',
     'Groceries',
     'Cleaning',
@@ -53,7 +51,6 @@ export const ExpenseList: React.FC = () => {
   const categoryIcons: Record<string, any> = {
     Food: Utensils,
     Electricity: Zap,
-    'Wi-Fi': Wifi,
     Water: Droplets,
     Groceries: ShoppingBag,
     Cleaning: Home,

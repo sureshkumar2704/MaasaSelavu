@@ -3,7 +3,6 @@ export type ExpenseType = 'SHARED' | 'PERSONAL';
 export type Category = 
   | 'Food' 
   | 'Electricity' 
-  | 'Wi-Fi' 
   | 'Water' 
   | 'Groceries' 
   | 'Cleaning' 

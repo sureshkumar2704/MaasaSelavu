@@ -8,7 +8,6 @@ import {
   AlertCircle,
   Utensils,
   Zap,
-  Wifi,
   Droplets,
   ShoppingBag,
   Home,
@@ -46,7 +45,6 @@ export const AddExpenseModal: React.FC = () => {
   const categoryOptions: { name: Category; icon: any; color: string }[] = [
     { name: 'Food', icon: Utensils, color: 'text-amber-400 border-amber-500/30 bg-amber-500/10' },
     { name: 'Electricity', icon: Zap, color: 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' },
-    { name: 'Wi-Fi', icon: Wifi, color: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10' },
     { name: 'Water', icon: Droplets, color: 'text-blue-400 border-blue-500/30 bg-blue-500/10' },
     { name: 'Groceries', icon: ShoppingBag, color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' },
     { name: 'Cleaning', icon: Home, color: 'text-teal-400 border-teal-500/30 bg-teal-500/10' },

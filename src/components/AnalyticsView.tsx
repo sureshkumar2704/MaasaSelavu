@@ -30,7 +30,6 @@ export const AnalyticsView: React.FC = () => {
     Travel: 1400,
     Electricity: 900,
     Shopping: 850,
-    'Wi-Fi': 600,
     Other: 270,
   };
 
@@ -118,8 +117,7 @@ export const AnalyticsView: React.FC = () => {
               <div className="pl-3 space-y-1.5 font-medium text-slate-400">
                 <div className="flex justify-between"><span>Food Order</span><span className="font-mono text-slate-200">₹750</span></div>
                 <div className="flex justify-between"><span>Electricity Bill</span><span className="font-mono text-slate-200">₹300</span></div>
-                <div className="flex justify-between"><span>Wi-Fi Bill</span><span className="font-mono text-slate-200">₹100</span></div>
-                <div className="flex justify-between"><span>Groceries</span><span className="font-mono text-slate-200">₹450</span></div>
+                <div className="flex justify-between"><span>Groceries</span><span className="font-mono text-slate-200">₹550</span></div>
                 <div className="flex justify-between"><span>Other Items</span><span className="font-mono text-slate-200">₹250</span></div>
               </div>
               <div className="flex justify-between text-indigo-300 font-black pt-2 border-t border-slate-800/80 text-xs">
