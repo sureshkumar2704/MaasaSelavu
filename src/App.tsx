@@ -8,11 +8,15 @@ import { SettlementView } from './components/SettlementView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { MemberManagement } from './components/MemberManagement';
 import { AddExpenseModal } from './components/AddExpenseModal';
+import { LoginModal } from './components/LoginModal';
+import { ProfileModal } from './components/ProfileModal';
 import { Wallet } from 'lucide-react';
 
 const MainAppLayout: React.FC = () => {
-  const { activeTab } = useExpense();
+  const { activeTab, isAuthenticated } = useExpense();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  if (!isAuthenticated) return <LoginModal />;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
@@ -38,6 +42,8 @@ const MainAppLayout: React.FC = () => {
           {activeTab === 'analytics' && <AnalyticsView />}
           {activeTab === 'members' && <MemberManagement />}
           <AddExpenseModal />
+          <LoginModal />
+          <ProfileModal />
         </main>
 
         <footer className="bg-slate-900/60 border-t border-slate-800/80 py-4 text-center text-xs text-slate-500 mt-auto">

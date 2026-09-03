@@ -6,6 +6,47 @@ class ExpenseType(str, Enum):
     SHARED = "SHARED"
     PERSONAL = "PERSONAL"
 
+class RegisterRequest(BaseModel):
+    username: str
+    phone: str
+
+class ProfileUpdate(BaseModel):
+    phone: str
+
+class LoginRequest(BaseModel):
+    username_or_phone: str
+    phone: str
+
+class RoomCreate(BaseModel):
+    name: str
+    code: str
+
+class RoomJoin(BaseModel):
+    code: str
+
+class RoommateAdd(BaseModel):
+    name: str
+    phone: str
+
+class RoomResponse(BaseModel):
+    id: str
+    name: str
+    code: str
+    created_at: str
+    members: List["UserResponse"] = []
+
+class UserResponse(BaseModel):
+    id: str
+    name: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    code: Optional[str] = None
+    upi_id: Optional[str] = None
+    avatar: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
 class ExpenseSplitBase(BaseModel):
     user_id: str
     share_amount: float

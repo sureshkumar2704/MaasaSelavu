@@ -29,7 +29,8 @@ export const Dashboard: React.FC = () => {
     currentUserBurden, 
     currentUserRecoverable,
     setActiveTab,
-    setIsAddExpenseModalOpen
+    setIsAddExpenseModalOpen,
+    activeRoom
   } = useExpense();
 
   const now = new Date('2026-08-10');
@@ -112,6 +113,10 @@ export const Dashboard: React.FC = () => {
           <p className="text-xs text-slate-400 mt-1 max-w-xl font-medium">
             Track your personal spending alongside your <strong className="text-slate-200">1/{members.length}th room share</strong> with automatic debt calculation.
           </p>
+          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-xs">
+            <span className="font-bold text-indigo-200">{activeRoom.name}</span>
+            <span className="font-mono font-black text-emerald-400">🔑 {activeRoom.code}</span>
+          </div>
         </div>
 
         <div className="flex items-center space-x-3 shrink-0">
@@ -375,4 +380,3 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
-

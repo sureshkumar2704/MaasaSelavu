@@ -1,6 +1,7 @@
 import React from 'react';
-import { Menu, Search, PlusCircle, Wallet, Sparkles } from 'lucide-react';
+import { Menu, Search, PlusCircle, Wallet, Sparkles, UserCheck, KeyRound } from 'lucide-react';
 import { useExpense } from '../context/ExpenseContext';
+import { RoomSelector } from './RoomSelector';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -13,7 +14,9 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarOpen }
     searchQuery, 
     setSearchQuery, 
     setIsAddExpenseModalOpen,
-    expenses 
+    expenses,
+    currentUser,
+    setIsProfileModalOpen
   } = useExpense();
 
   const tabTitles: Record<string, { title: string; subtitle: string }> = {
@@ -62,9 +65,29 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarOpen }
           </div>
         </div>
 
-        {/* Right: Search & Quick Add */}
+        {/* Right: User Login Profile Badge + Search & Quick Add */}
         <div className="flex items-center space-x-3">
-          <div className="relative hidden sm:block w-48 lg:w-64">
+          <RoomSelector />
+          
+          {/* Active Logged In Roommate Badge */}
+          <button
+            onClick={() => setIsProfileModalOpen(true)}
+            title="View and edit your profile"
+            className="flex items-center space-x-2 p-1.5 pr-3 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/40 rounded-xl text-xs transition cursor-pointer"
+          >
+            <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] ${currentUser.avatar}`}>
+              {currentUser.name.substring(0, 2).toUpperCase()}
+            </div>
+            <div className="hidden sm:block text-left">
+              <div className="text-[11px] font-bold text-white leading-tight flex items-center space-x-1">
+                <span>{currentUser.name}</span>
+                <UserCheck className="w-3 h-3 text-emerald-400" />
+              </div>
+            </div>
+            <KeyRound className="w-3.5 h-3.5 text-emerald-400 hidden xs:block" />
+          </button>
+
+          <div className="relative hidden lg:block w-48 xl:w-56">
             <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
             <input
               type="text"
@@ -73,9 +96,6 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarOpen }
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-10 py-2 bg-slate-900/90 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
             />
-            <kbd className="absolute right-3 top-2.5 hidden lg:inline-block px-1.5 py-0.5 text-[9px] font-mono font-bold text-slate-400 bg-slate-800 border border-slate-700 rounded">
-              ⌘K
-            </kbd>
           </div>
 
           <button
@@ -92,4 +112,3 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarOpen }
     </header>
   );
 };
-

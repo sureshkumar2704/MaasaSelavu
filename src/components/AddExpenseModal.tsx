@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Users, 
@@ -16,7 +16,9 @@ import {
   Shield,
   Tag,
   HelpCircle,
-  Plus
+  Plus,
+  Lock,
+  Globe
 } from 'lucide-react';
 import { useExpense } from '../context/ExpenseContext';
 import type { Category, ExpenseType, ExpenseSplit } from '../types';
@@ -26,10 +28,9 @@ export const AddExpenseModal: React.FC = () => {
     members, 
     addExpense, 
     isAddExpenseModalOpen, 
-    setIsAddExpenseModalOpen 
+    setIsAddExpenseModalOpen,
+    currentUser
   } = useExpense();
-
-  const currentUser = members.find((m) => m.isCurrentUser) || members[0];
 
   const [type, setType] = useState<ExpenseType>('SHARED');
   const [amount, setAmount] = useState('');
@@ -39,6 +40,12 @@ export const AddExpenseModal: React.FC = () => {
   const [description, setDescription] = useState('');
   const [isCustomSplit, setIsCustomSplit] = useState(false);
   const [customShares, setCustomShares] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (currentUser?.id) {
+      setPaidBy(currentUser.id);
+    }
+  }, [currentUser]);
 
   if (!isAddExpenseModalOpen) return null;
 
@@ -88,7 +95,7 @@ export const AddExpenseModal: React.FC = () => {
       amount: numAmount,
       type,
       category,
-      paidBy,
+      paidBy: type === 'PERSONAL' ? currentUser.id : paidBy,
       date,
       description,
       splits,
@@ -122,7 +129,7 @@ export const AddExpenseModal: React.FC = () => {
         </div>
 
         {/* Expense Type Switcher Tabs */}
-        <div className="px-6 pt-4 bg-slate-900/40">
+        <div className="px-6 pt-4 bg-slate-900/40 space-y-2">
           <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900/90 rounded-2xl border border-slate-800">
             <button
               type="button"
@@ -153,6 +160,19 @@ export const AddExpenseModal: React.FC = () => {
               <span>Personal Expense</span>
             </button>
           </div>
+
+          {/* Visibility Banner */}
+          {type === 'SHARED' ? (
+            <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300 flex items-center space-x-2">
+              <Globe className="w-4 h-4 text-indigo-400 shrink-0" />
+              <span><strong>Shared Expense:</strong> Will be visible to all 4 roommates when they log in.</span>
+            </div>
+          ) : (
+            <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-300 flex items-center space-x-2">
+              <Lock className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span><strong>Personal Expense:</strong> Visible ONLY to you ({currentUser.name}).</span>
+            </div>
+          )}
         </div>
 
         {/* Form Body */}
@@ -251,7 +271,7 @@ export const AddExpenseModal: React.FC = () => {
               >
                 {members.map((m) => (
                   <option key={m.id} value={m.id} className="bg-slate-900 text-white">
-                    {m.name} {m.isCurrentUser && '(You)'}
+                    {m.name} {m.id === currentUser.id && '(You - Logged In)'}
                   </option>
                 ))}
               </select>
@@ -374,4 +394,3 @@ export const AddExpenseModal: React.FC = () => {
     </div>
   );
 };
-

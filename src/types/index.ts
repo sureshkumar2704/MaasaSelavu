@@ -16,7 +16,17 @@ export interface Member {
   id: string;
   name: string;
   avatar: string;
+  phone: string;
+  code?: string;
   isCurrentUser: boolean;
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  code: string;
+  members: Member[];
+  createdAt: string;
 }
 
 export interface ExpenseSplit {
@@ -35,6 +45,7 @@ export interface Expense {
   description?: string;
   splits: ExpenseSplit[]; // For SHARED expenses
   createdAt: string;
+  roomId?: string;
 }
 
 export interface MemberBalance {

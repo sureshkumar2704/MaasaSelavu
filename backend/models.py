@@ -15,6 +15,8 @@ class User(Base):
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=True)
+    phone = Column(String, unique=True, index=True, nullable=True)
+    code = Column(String, unique=True, index=True, nullable=True)
     upi_id = Column(String, nullable=True)
     avatar = Column(String, nullable=True)
 
@@ -26,6 +28,7 @@ class Room(Base):
 
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    code = Column(String, unique=True, index=True, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class RoomMember(Base):
