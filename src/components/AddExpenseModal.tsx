@@ -21,7 +21,7 @@ import {
   Globe
 } from 'lucide-react';
 import { useExpense } from '../context/ExpenseContext';
-import type { Category, ExpenseType, ExpenseSplit } from '../types';
+import type { Category, ExpenseType, ExpenseSplit, ExpenseLineItem } from '../types';
 
 export const AddExpenseModal: React.FC = () => {
   const { 
@@ -40,12 +40,22 @@ export const AddExpenseModal: React.FC = () => {
   const [description, setDescription] = useState('');
   const [isCustomSplit, setIsCustomSplit] = useState(false);
   const [customShares, setCustomShares] = useState<Record<string, string>>({});
+  const [entryMode, setEntryMode] = useState<'quick' | 'itemized'>('quick');
+  const [lineItems, setLineItems] = useState<ExpenseLineItem[]>([]);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>(members.map((member) => member.id));
 
   useEffect(() => {
     if (currentUser?.id) {
       setPaidBy(currentUser.id);
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    setSelectedMemberIds((ids) => {
+      const memberIds = members.map((member) => member.id);
+      return [...ids.filter((id) => memberIds.includes(id)), ...memberIds.filter((id) => !ids.includes(id))];
+    });
+  }, [members]);
 
   if (!isAddExpenseModalOpen) return null;
 
@@ -62,28 +72,32 @@ export const AddExpenseModal: React.FC = () => {
     { name: 'Other', icon: HelpCircle, color: 'text-slate-400 border-slate-700 bg-slate-800/50' },
   ];
 
-  const numAmount = parseFloat(amount) || 0;
-  const equalShare = members.length > 0 ? Math.round(numAmount / members.length) : 0;
+  const numAmount = entryMode === 'itemized' ? lineItems.reduce((sum, item) => sum + item.amount, 0) : (parseFloat(amount) || 0);
+  const selectedMembers = members.filter((member) => selectedMemberIds.includes(member.id));
+  const equalShare = selectedMembers.length > 0 ? Math.round(numAmount / selectedMembers.length) : 0;
 
   const handleQuickAddAmount = (addVal: number) => {
     const currentVal = parseFloat(amount) || 0;
     setAmount((currentVal + addVal).toString());
   };
 
+  const addLineItem = () => setLineItems((items) => [...items, { id: `item-${Date.now()}-${items.length}`, name: '', amount: 0, category: 'Groceries' }]);
+  const updateLineItem = (id: string, patch: Partial<ExpenseLineItem>) => setLineItems((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item));
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (numAmount <= 0) return;
+    if (numAmount <= 0 || (type === 'SHARED' && selectedMembers.length === 0) || (entryMode === 'itemized' && lineItems.some((item) => !item.name.trim() || item.amount <= 0))) return;
 
     let splits: ExpenseSplit[] = [];
 
     if (type === 'SHARED') {
       if (isCustomSplit) {
-        splits = members.map((m) => ({
+        splits = selectedMembers.map((m) => ({
           memberId: m.id,
           shareAmount: parseFloat(customShares[m.id]) || 0,
         }));
       } else {
-        splits = members.map((m) => ({
+        splits = selectedMembers.map((m) => ({
           memberId: m.id,
           shareAmount: equalShare,
         }));
@@ -91,22 +105,26 @@ export const AddExpenseModal: React.FC = () => {
     }
 
     addExpense({
-      title: category,
+      title: entryMode === 'itemized' ? 'Itemized bill' : category,
       amount: numAmount,
       type,
-      category,
+      category: entryMode === 'itemized' ? (lineItems[0]?.category || 'Other') : category,
       paidBy: type === 'PERSONAL' ? currentUser.id : paidBy,
       date,
       description,
       splits,
+      lineItems: entryMode === 'itemized' ? lineItems : undefined,
     });
 
     setAmount('');
     setDescription('');
+    setLineItems([]);
+    setEntryMode('quick');
     setIsAddExpenseModalOpen(false);
   };
 
   const selectedPayer = members.find((m) => m.id === paidBy);
+  const toggleMember = (memberId: string) => setSelectedMemberIds((ids) => ids.includes(memberId) ? ids.filter((id) => id !== memberId) : [...ids, memberId]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
@@ -126,6 +144,13 @@ export const AddExpenseModal: React.FC = () => {
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        <div className="px-6 pt-4 bg-slate-900/40">
+          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
+            <button type="button" onClick={() => setEntryMode('quick')} className={`py-2.5 rounded-lg text-xs font-black ${entryMode === 'quick' ? 'bg-indigo-500 text-white' : 'text-slate-400'}`}>Quick expense</button>
+            <button type="button" onClick={() => { setEntryMode('itemized'); if (!lineItems.length) addLineItem(); }} className={`py-2.5 rounded-lg text-xs font-black ${entryMode === 'itemized' ? 'bg-indigo-500 text-white' : 'text-slate-400'}`}>Itemized bill</button>
+          </div>
         </div>
 
         {/* Expense Type Switcher Tabs */}
@@ -179,7 +204,7 @@ export const AddExpenseModal: React.FC = () => {
         <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
           
           {/* Visual Category Picker Grid */}
-          <div>
+          {entryMode === 'quick' && <div>
             <label className="block text-xs font-extrabold text-slate-300 uppercase tracking-wider mb-2">
               Select Category *
             </label>
@@ -206,10 +231,16 @@ export const AddExpenseModal: React.FC = () => {
                 );
               })}
             </div>
-          </div>
+          </div>}
+
+          {entryMode === 'itemized' && <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 space-y-3">
+            <div className="flex items-center justify-between"><div><p className="text-xs font-black text-indigo-200">Bill items</p><p className="text-[11px] text-slate-400">Add each item with its own category.</p></div><button type="button" onClick={addLineItem} className="px-3 py-2 rounded-lg bg-indigo-500 text-white text-xs font-black">+ Add item</button></div>
+            {lineItems.map((item) => <div key={item.id} className="grid grid-cols-1 sm:grid-cols-[1fr_7rem_8rem_auto] gap-2 items-center"><input required value={item.name} onChange={(e) => updateLineItem(item.id, { name: e.target.value })} placeholder="Item name" className="p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white"/><input required min="0.01" step="any" type="number" value={item.amount || ''} onChange={(e) => updateLineItem(item.id, { amount: parseFloat(e.target.value) || 0 })} onWheel={(e) => e.currentTarget.blur()} placeholder="₹ Amount" className="p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white"/><select value={item.category} onChange={(e) => updateLineItem(item.id, { category: e.target.value as Category })} className="p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white">{categoryOptions.map((option) => <option key={option.name} value={option.name}>{option.name}</option>)}</select><button type="button" onClick={() => setLineItems((items) => items.filter((line) => line.id !== item.id))} className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg">×</button></div>)}
+            <div className="flex items-center justify-between pt-2 border-t border-indigo-500/20"><span className="text-xs font-bold text-slate-300">Gross total</span><span className="text-lg font-black font-mono text-emerald-400">₹{numAmount.toLocaleString('en-IN')}</span></div>
+          </div>}
 
           {/* Amount & Quick Chips */}
-          <div className="space-y-2">
+          {entryMode === 'quick' && <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-extrabold text-slate-300 uppercase tracking-wider">
                 Amount (₹) *
@@ -227,6 +258,7 @@ export const AddExpenseModal: React.FC = () => {
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                onWheel={(e) => e.currentTarget.blur()}
                 className="w-full pl-9 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-xl font-black tracking-tight"
               />
             </div>
@@ -255,7 +287,7 @@ export const AddExpenseModal: React.FC = () => {
                 </button>
               )}
             </div>
-          </div>
+          </div>}
 
           {/* Paid By & Date */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -309,6 +341,14 @@ export const AddExpenseModal: React.FC = () => {
                 </label>
               </div>
 
+              <div className="space-y-2 pt-2 border-t border-slate-800">
+                <div className="flex items-center justify-between"><span className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Split with</span><button type="button" onClick={() => setSelectedMemberIds(selectedMembers.length === members.length ? [] : members.map((member) => member.id))} className="text-[10px] font-bold text-indigo-300">{selectedMembers.length === members.length ? 'Clear all' : 'Select all'}</button></div>
+                <div className="grid grid-cols-2 gap-2">
+                  {members.map((member) => <label key={member.id} className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer ${selectedMemberIds.includes(member.id) ? 'bg-indigo-500/10 border-indigo-500/40 text-white' : 'bg-slate-950 border-slate-800 text-slate-500'}`}><input type="checkbox" checked={selectedMemberIds.includes(member.id)} onChange={() => toggleMember(member.id)} className="accent-indigo-500"/><span className="truncate">{member.name}</span></label>)}
+                </div>
+                {selectedMembers.length === 0 && <p className="text-[11px] text-rose-400">Select at least one roommate to split this bill.</p>}
+              </div>
+
               {!isCustomSplit ? (
                 <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300 space-y-1">
                   <p className="font-bold">Equally divided among {members.length} roommates</p>
@@ -318,7 +358,7 @@ export const AddExpenseModal: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {members.map((m) => (
+                  {selectedMembers.map((m) => (
                     <div key={m.id} className="flex items-center justify-between text-xs">
                       <span className="text-slate-300 font-bold">{m.name}</span>
                       <div className="relative w-28">
@@ -330,6 +370,7 @@ export const AddExpenseModal: React.FC = () => {
                           onChange={(e) =>
                             setCustomShares({ ...customShares, [m.id]: e.target.value })
                           }
+                          onWheel={(e) => e.currentTarget.blur()}
                           className="w-full pl-6 pr-2 py-1 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-xs text-right font-bold"
                         />
                       </div>

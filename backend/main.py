@@ -196,6 +196,10 @@ def create_expense(expense: ExpenseCreate, room_id: Optional[str] = None, db: Se
         description=expense.description,
         room_id=room_id,
     )
+    if expense.line_items:
+        calculated_total = round(sum(item.amount for item in expense.line_items), 2)
+        if abs(calculated_total - expense.amount) > 0.01:
+            raise HTTPException(status_code=400, detail="Expense amount must equal the itemized gross total")
     db.add(db_exp)
     db.commit()
 

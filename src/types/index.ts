@@ -34,6 +34,13 @@ export interface ExpenseSplit {
   shareAmount: number;
 }
 
+export interface ExpenseLineItem {
+  id: string;
+  name: string;
+  amount: number;
+  category: Category;
+}
+
 export interface Expense {
   id: string;
   title: string;
@@ -46,6 +53,15 @@ export interface Expense {
   splits: ExpenseSplit[]; // For SHARED expenses
   createdAt: string;
   roomId?: string;
+  lineItems?: ExpenseLineItem[];
+}
+
+export interface Notification {
+  id: string;
+  recipientId: string;
+  message: string;
+  createdAt: string;
+  read: boolean;
 }
 
 export interface MemberBalance {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Search, PlusCircle, Wallet, Sparkles, UserCheck, KeyRound } from 'lucide-react';
+import { Menu, Search, PlusCircle, Wallet, Sparkles, UserCheck, KeyRound, RefreshCw, Bell, Check } from 'lucide-react';
 import { useExpense } from '../context/ExpenseContext';
 import { RoomSelector } from './RoomSelector';
 
@@ -16,7 +16,8 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarOpen }
     setIsAddExpenseModalOpen,
     expenses,
     currentUser,
-    setIsProfileModalOpen
+    setIsProfileModalOpen,
+    refreshData, notifications, unreadNotificationCount, markNotificationRead
   } = useExpense();
 
   const tabTitles: Record<string, { title: string; subtitle: string }> = {
@@ -28,6 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarOpen }
   };
 
   const currentTabInfo = tabTitles[activeTab] || tabTitles.dashboard;
+  const [showNotifications, setShowNotifications] = React.useState(false);
 
   return (
     <header className="sticky top-0 z-30 bg-slate-950/85 backdrop-blur-2xl border-b border-slate-800/80 px-4 sm:px-6 lg:px-8 py-3.5 shadow-lg shadow-black/20">
@@ -68,6 +70,8 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarOpen }
         {/* Right: User Login Profile Badge + Search & Quick Add */}
         <div className="flex items-center space-x-3">
           <RoomSelector />
+          <button onClick={refreshData} title="Refresh room updates" aria-label="Refresh room updates" className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/40 transition cursor-pointer"><RefreshCw className="w-4 h-4" /></button>
+          <div className="relative"><button onClick={() => setShowNotifications((value) => !value)} title="Notifications" aria-label="Notifications" className="relative p-2 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-emerald-400 transition cursor-pointer"><Bell className="w-4 h-4" />{unreadNotificationCount > 0 && <span className="absolute -right-1 -top-1 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center">{unreadNotificationCount}</span>}</button>{showNotifications && <><button onClick={() => setShowNotifications(false)} className="fixed inset-0 z-40" aria-label="Close notifications"/><div className="absolute right-0 top-11 z-50 w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-4 space-y-3"><div className="flex justify-between"><p className="text-xs font-black text-white">Notifications</p><span className="text-[10px] text-slate-500">{unreadNotificationCount} unread</span></div>{notifications.length === 0 ? <p className="text-xs text-slate-400 py-3">You’re all caught up.</p> : notifications.map((notification) => <div key={notification.id} className={`p-3 rounded-xl border ${notification.read ? 'border-slate-800 bg-slate-950/50' : 'border-amber-500/25 bg-amber-500/5'}`}><p className="text-xs leading-5 text-slate-300">{notification.message}</p>{!notification.read && <button onClick={() => markNotificationRead(notification.id)} className="mt-2 inline-flex items-center gap-1 text-[10px] font-black text-emerald-400"><Check className="w-3 h-3"/> Mark as read</button>}</div>)}</div></>}</div>
           
           {/* Active Logged In Roommate Badge */}
           <button

@@ -66,7 +66,12 @@ export const Dashboard: React.FC = () => {
     }
 
     if (userShare > 0) {
-      categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + userShare;
+      if (exp.lineItems?.length) {
+        exp.lineItems.forEach((item) => {
+          const itemShare = exp.amount > 0 ? item.amount * userShare / exp.amount : 0;
+          categoryTotals[item.category] = (categoryTotals[item.category] || 0) + itemShare;
+        });
+      } else categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + userShare;
     }
   });
 

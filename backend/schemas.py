@@ -68,8 +68,14 @@ class ExpenseBase(BaseModel):
     date: str
     description: Optional[str] = None
 
+class ExpenseLineItemCreate(BaseModel):
+    name: str
+    amount: float
+    category: str
+
 class ExpenseCreate(ExpenseBase):
     splits: Optional[List[ExpenseSplitCreate]] = []
+    line_items: Optional[List[ExpenseLineItemCreate]] = []
 
 class ExpenseResponse(ExpenseBase):
     id: str

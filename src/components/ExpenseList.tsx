@@ -16,10 +16,11 @@ import {
   Shield,
   HelpCircle,
   Lock,
-  Globe
+  Globe,
+  AlertTriangle
 } from 'lucide-react';
 import { useExpense } from '../context/ExpenseContext';
-import type { Category, ExpenseType } from '../types';
+import type { Category, Expense, ExpenseType } from '../types';
 
 export const ExpenseList: React.FC = () => {
   const { 
@@ -33,6 +34,7 @@ export const ExpenseList: React.FC = () => {
 
   const [typeFilter, setTypeFilter] = useState<'ALL' | ExpenseType>('ALL');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
 
   const categoriesList: Category[] = [
     'Food',
@@ -219,6 +221,9 @@ export const ExpenseList: React.FC = () => {
                         "{exp.description}"
                       </p>
                     )}
+                    {exp.lineItems?.length ? (
+                      <p className="text-[11px] text-indigo-300 font-medium">{exp.lineItems.map((item) => `${item.name} · ${item.category} ₹${item.amount.toLocaleString('en-IN')}`).join('  •  ')}</p>
+                    ) : null}
                   </div>
                 </div>
 
@@ -236,17 +241,30 @@ export const ExpenseList: React.FC = () => {
                     )}
                   </div>
 
-                  <button
-                    onClick={() => deleteExpense(exp.id)}
+                  {exp.paidBy === currentUser.id && <button
+                    onClick={() => setExpenseToDelete(exp)}
                     title="Delete expense"
                     className="p-2.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
                   >
                     <Trash2 className="w-4.5 h-4.5" />
-                  </button>
+                  </button>}
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+      {expenseToDelete && (
+        <div onClick={() => setExpenseToDelete(null)} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <div onClick={(event) => event.stopPropagation()} role="alertdialog" aria-modal="true" className="w-full max-w-sm rounded-3xl border border-rose-500/30 bg-slate-900 p-5 sm:p-6 shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-400 flex items-center justify-center"><AlertTriangle className="w-6 h-6" /></div>
+            <h3 className="mt-4 text-lg font-black text-white">Delete transaction?</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Delete <strong className="text-slate-200">{expenseToDelete.title}</strong> for <strong className="text-slate-200">₹{expenseToDelete.amount.toLocaleString('en-IN')}</strong>? This action cannot be undone.</p>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button onClick={() => setExpenseToDelete(null)} className="order-2 sm:order-1 py-3 rounded-xl border border-slate-700 text-slate-300 text-xs font-bold">Cancel</button>
+              <button onClick={() => { deleteExpense(expenseToDelete.id); setExpenseToDelete(null); }} className="order-1 sm:order-2 py-3 rounded-xl bg-rose-500 text-white text-xs font-black">Delete transaction</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -39,11 +39,13 @@ export const AnalyticsView: React.FC = () => {
       if (exp.type === 'SHARED') {
         const split = exp.splits.find((s) => s.memberId === currentUser.id);
         if (split) {
-          thisWeekRoomCat[exp.category] = (thisWeekRoomCat[exp.category] || 0) + split.shareAmount;
+          if (exp.lineItems?.length) exp.lineItems.forEach((item) => { const itemShare = exp.amount > 0 ? item.amount * split.shareAmount / exp.amount : 0; thisWeekRoomCat[item.category] = (thisWeekRoomCat[item.category] || 0) + itemShare; });
+          else thisWeekRoomCat[exp.category] = (thisWeekRoomCat[exp.category] || 0) + split.shareAmount;
           thisWeekRoomTotal += split.shareAmount;
         }
       } else if (exp.type === 'PERSONAL' && exp.paidBy === currentUser.id) {
-        thisWeekPersonalCat[exp.category] = (thisWeekPersonalCat[exp.category] || 0) + exp.amount;
+        if (exp.lineItems?.length) exp.lineItems.forEach((item) => { thisWeekPersonalCat[item.category] = (thisWeekPersonalCat[item.category] || 0) + item.amount; });
+        else thisWeekPersonalCat[exp.category] = (thisWeekPersonalCat[exp.category] || 0) + exp.amount;
         thisWeekPersonalTotal += exp.amount;
       }
     }
@@ -56,7 +58,8 @@ export const AnalyticsView: React.FC = () => {
       userShare = exp.amount;
     }
     if (userShare > 0) {
-      monthlyCategoryTotals[exp.category] = (monthlyCategoryTotals[exp.category] || 0) + userShare;
+      if (exp.lineItems?.length) exp.lineItems.forEach((item) => { const itemShare = exp.amount > 0 ? item.amount * userShare / exp.amount : 0; monthlyCategoryTotals[item.category] = (monthlyCategoryTotals[item.category] || 0) + itemShare; });
+      else monthlyCategoryTotals[exp.category] = (monthlyCategoryTotals[exp.category] || 0) + userShare;
     }
   });
 
@@ -238,4 +241,3 @@ export const AnalyticsView: React.FC = () => {
     </div>
   );
 };
-
