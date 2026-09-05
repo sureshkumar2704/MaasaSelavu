@@ -33,6 +33,14 @@ export const DEFAULT_MEMBERS: Member[] = [
     code: '1004',
     isCurrentUser: false,
   },
+  {
+    id: 'mem-5',
+    name: 'Tamil',
+    avatar: 'bg-teal-500 text-white',
+    phone: '9876543214',
+    code: '1005',
+    isCurrentUser: false,
+  },
 ];
 
 export const DEFAULT_ROOMS: Room[] = [

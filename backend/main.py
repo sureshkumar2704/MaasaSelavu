@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy import text
+from sqlalchemy import text, func
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
@@ -50,6 +50,7 @@ def startup_seed_members():
         {"id": "mem-2", "name": "Person B", "phone": "9876543211", "code": "1002", "avatar": "bg-indigo-500 text-white"},
         {"id": "mem-3", "name": "Person C", "phone": "9876543212", "code": "1003", "avatar": "bg-amber-500 text-white"},
         {"id": "mem-4", "name": "Person D", "phone": "9876543213", "code": "1004", "avatar": "bg-purple-500 text-white"},
+        {"id": "mem-5", "name": "Tamil", "phone": "9876543214", "code": "1005", "avatar": "bg-teal-500 text-white"},
     ]
     for u_data in default_users:
         user = db.query(User).filter(User.id == u_data["id"]).first()
@@ -67,7 +68,7 @@ def startup_seed_members():
             user.code = u_data["code"]
             user.avatar = u_data["avatar"]
     db.commit()
-    default_rooms = [("room-flat-302", "Flat 302", "FLAT302", ["mem-1", "mem-2", "mem-3", "mem-4"]), ("room-goa-vacation", "Goa Vacation", "GOA2026", ["mem-1", "mem-2", "mem-3"])]
+    default_rooms = [("room-flat-302", "Flat 302", "FLAT302", ["mem-1", "mem-2", "mem-3", "mem-4", "mem-5"]), ("room-goa-vacation", "Goa Vacation", "GOA2026", ["mem-1", "mem-2", "mem-3"])]
     for room_id, name, code, member_ids in default_rooms:
         room = db.query(Room).filter(Room.id == room_id).first()
         if not room:
@@ -139,7 +140,7 @@ def get_rooms(user_id: str, db: Session = Depends(get_db)):
 @app.post("/api/rooms", response_model=RoomResponse)
 def create_room(data: RoomCreate, user_id: str, db: Session = Depends(get_db)):
     code = data.code.strip().upper()
-    if db.query(Room).filter(Room.code == code).first(): raise HTTPException(status_code=409, detail="Room code already exists")
+    if db.query(Room).filter(func.upper(Room.code) == code).first(): raise HTTPException(status_code=409, detail="Room code already exists")
     if not db.query(User).filter(User.id == user_id).first(): raise HTTPException(status_code=404, detail="User not found")
     room = Room(id=f"room-{uuid.uuid4().hex[:8]}", name=data.name.strip(), code=code)
     db.add(room); db.flush(); db.add(RoomMember(id=f"rm-{uuid.uuid4().hex[:8]}", room_id=room.id, user_id=user_id)); db.commit()
@@ -147,8 +148,9 @@ def create_room(data: RoomCreate, user_id: str, db: Session = Depends(get_db)):
 
 @app.post("/api/rooms/join", response_model=RoomResponse)
 def join_room(data: RoomJoin, user_id: str, db: Session = Depends(get_db)):
-    room = db.query(Room).filter(Room.code == data.code.strip().upper()).first()
-    if not room: raise HTTPException(status_code=404, detail="Room code not found")
+    code = data.code.strip().upper()
+    room = db.query(Room).filter(func.upper(Room.code) == code).first()
+    if not room: raise HTTPException(status_code=404, detail="No such room exists with that room code")
     if not db.query(User).filter(User.id == user_id).first(): raise HTTPException(status_code=404, detail="User not found")
     if not db.query(RoomMember).filter(RoomMember.room_id == room.id, RoomMember.user_id == user_id).first(): db.add(RoomMember(id=f"rm-{uuid.uuid4().hex[:8]}", room_id=room.id, user_id=user_id)); db.commit()
     return room_response(room, db)

@@ -3,6 +3,8 @@ import type { DebtTransaction, Expense, Member, MemberBalance, Room, Settlement,
 import { DEFAULT_EXPENSES, DEFAULT_MEMBERS, DEFAULT_ROOMS, DEFAULT_SETTLEMENTS } from '../utils/sampleData';
 import { calculateBalancesAndDebts } from '../utils/settlement';
 
+import { createRoomApi, joinRoomApi } from '../utils/api';
+
 interface ExpenseContextType {
   members: Member[]; expenses: Expense[]; allExpenses: Expense[]; settlements: Settlement[];
   rooms: Room[]; activeRoomId: string; activeRoom: Room; setActiveRoomId: (id: string) => void; refreshData: () => void;
@@ -13,17 +15,25 @@ interface ExpenseContextType {
   balances: MemberBalance[]; debts: DebtTransaction[]; totalCashPaid: number; currentUserBurden: number; currentUserRecoverable: number;
   isAddExpenseModalOpen: boolean; setIsAddExpenseModalOpen: (open: boolean) => void; currentUserId: string; currentUser: Member;
   notifications: Notification[]; unreadNotificationCount: number; markNotificationRead: (id: string) => void;
-  isLoginModalOpen: boolean; setIsLoginModalOpen: (open: boolean) => void; isAuthenticated: boolean; isProfileModalOpen: boolean; setIsProfileModalOpen: (open: boolean) => void; login: (identifier: string, phone: string) => Result; register: (username: string, phone: string) => Result; updateMyPhone: (phone: string) => Result; switchUser: (id: string) => void; logout: () => void;
+  isLoginModalOpen: boolean; setIsLoginModalOpen: (open: boolean) => void; isAuthenticated: boolean; isProfileModalOpen: boolean; setIsProfileModalOpen: (open: boolean) => void; login: (identifier: string, phone: string, roomCode?: string) => Result; register: (username: string, phone: string, roomCode?: string) => Result; updateMyPhone: (phone: string) => Result; switchUser: (id: string) => void; logout: () => void;
 }
 type Result = { success: boolean; message?: string; notRegistered?: boolean };
-const STORAGE = { members: 'maasaselavu_members_v2', rooms: 'maasaselavu_rooms_v2', expenses: 'maasaselavu_expenses_v2', settlements: 'maasaselavu_settlements_v2', notifications: 'maasaselavu_notifications_v1', userRooms: 'maasaselavu_user_rooms_v1', user: 'maasaselavu_current_user_id_v2', room: 'maasaselavu_active_room_id_v2' };
+const STORAGE = { members: 'maasaselavu_members_v2', rooms: 'maasaselavu_rooms_v2', globalRooms: 'maasaselavu_global_rooms_v1', expenses: 'maasaselavu_expenses_v2', settlements: 'maasaselavu_settlements_v2', notifications: 'maasaselavu_notifications_v1', userRooms: 'maasaselavu_user_rooms_v1', user: 'maasaselavu_current_user_id_v2', room: 'maasaselavu_active_room_id_v2' };
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
 const stored = <T,>(key: string, fallback: T): T => { try { const value = localStorage.getItem(key); return value ? JSON.parse(value) as T : fallback; } catch { return fallback; } };
 const roomCode = (value: string) => value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
 
+const loadInitialRooms = (): Room[] => {
+  const local = stored<Room[]>(STORAGE.rooms, DEFAULT_ROOMS);
+  const globalR = stored<Room[]>(STORAGE.globalRooms, []);
+  const map = new Map<string, Room>();
+  [...DEFAULT_ROOMS, ...globalR, ...local].forEach((r) => map.set(r.id, r));
+  return Array.from(map.values());
+};
+
 export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [members, setMembers] = useState<Member[]>(() => stored(STORAGE.members, DEFAULT_MEMBERS));
-  const [rooms, setRooms] = useState<Room[]>(() => stored(STORAGE.rooms, DEFAULT_ROOMS));
+  const [rooms, setRooms] = useState<Room[]>(loadInitialRooms);
   const [currentUserId, setCurrentUserId] = useState(() => localStorage.getItem(STORAGE.user) || DEFAULT_MEMBERS[0].id);
   const [activeRoomId, setActiveRoomId] = useState(() => localStorage.getItem(STORAGE.room) || DEFAULT_ROOMS[0].id);
   const [allExpenses, setAllExpenses] = useState<Expense[]>(() => stored(STORAGE.expenses, DEFAULT_EXPENSES));
@@ -31,7 +41,19 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [notifications, setNotifications] = useState<Notification[]>(() => stored(STORAGE.notifications, []));
   const [activeTab, setActiveTab] = useState('dashboard'); const [searchQuery, setSearchQuery] = useState('');
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false); const [isLoginModalOpen, setIsLoginModalOpen] = useState(true); const [isAuthenticated, setIsAuthenticated] = useState(false); const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  useEffect(() => { localStorage.setItem(STORAGE.members, JSON.stringify(members)); }, [members]); useEffect(() => { localStorage.setItem(STORAGE.rooms, JSON.stringify(rooms)); }, [rooms]); useEffect(() => { localStorage.setItem(STORAGE.expenses, JSON.stringify(allExpenses)); }, [allExpenses]); useEffect(() => { localStorage.setItem(STORAGE.settlements, JSON.stringify(settlements)); }, [settlements]); useEffect(() => { localStorage.setItem(STORAGE.user, currentUserId); }, [currentUserId]); useEffect(() => { localStorage.setItem(STORAGE.room, activeRoomId); }, [activeRoomId]);
+  
+  useEffect(() => { localStorage.setItem(STORAGE.members, JSON.stringify(members)); }, [members]); 
+  useEffect(() => { 
+    localStorage.setItem(STORAGE.rooms, JSON.stringify(rooms)); 
+    const currentGlobal = stored<Room[]>(STORAGE.globalRooms, []);
+    const map = new Map<string, Room>();
+    [...DEFAULT_ROOMS, ...currentGlobal, ...rooms].forEach((r) => map.set(r.id, r));
+    localStorage.setItem(STORAGE.globalRooms, JSON.stringify(Array.from(map.values())));
+  }, [rooms]); 
+  useEffect(() => { localStorage.setItem(STORAGE.expenses, JSON.stringify(allExpenses)); }, [allExpenses]); 
+  useEffect(() => { localStorage.setItem(STORAGE.settlements, JSON.stringify(settlements)); }, [settlements]); 
+  useEffect(() => { localStorage.setItem(STORAGE.user, currentUserId); }, [currentUserId]); 
+  useEffect(() => { localStorage.setItem(STORAGE.room, activeRoomId); }, [activeRoomId]);
   useEffect(() => { localStorage.setItem(STORAGE.notifications, JSON.stringify(notifications)); }, [notifications]);
   useEffect(() => {
     const membership: Record<string, string[]> = {};
@@ -50,7 +72,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }));
   }, [members.length]);
   const currentUser = useMemo(() => members.find((m) => m.id === currentUserId) || members[0], [members, currentUserId]);
-  const userRooms = useMemo(() => rooms.filter((r) => r.members.some((m) => m.id === currentUser.id)), [rooms, currentUser.id]);
+  const userRooms = useMemo(() => rooms.filter((r) => r.members.some((m) => m.id === currentUser.id || (m.phone && m.phone === currentUser.phone))), [rooms, currentUser.id, currentUser.phone]);
   const activeRoom = useMemo(() => userRooms.find((r) => r.id === activeRoomId) || userRooms[0] || rooms[0], [activeRoomId, rooms, userRooms]);
   useEffect(() => { if (activeRoom && activeRoom.id !== activeRoomId) setActiveRoomId(activeRoom.id); }, [activeRoom, activeRoomId]);
   const refreshData = () => {
@@ -75,10 +97,62 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const canonicalMemberIds = useMemo(() => { const map = new Map<string, string>(); activeRoom.members.forEach((member) => { const canonical = visibleMembers.find((item) => item.phone.replace(/\D/g, '') === member.phone.replace(/\D/g, '')); if (canonical) map.set(member.id, canonical.id); }); return map; }, [activeRoom.members, visibleMembers]);
   const expenses = useMemo(() => allExpenses.filter((e) => e.roomId === activeRoom.id && (e.type === 'SHARED' || e.paidBy === currentUser.id)).map((expense) => ({ ...expense, paidBy: canonicalMemberIds.get(expense.paidBy) || expense.paidBy, splits: expense.splits.map((split) => ({ ...split, memberId: canonicalMemberIds.get(split.memberId) || split.memberId })) })), [allExpenses, activeRoom.id, currentUser.id, canonicalMemberIds]);
   const calculated = useMemo(() => calculateBalancesAndDebts(visibleMembers, expenses, settlements), [visibleMembers, expenses, settlements]);
-  const login = (identifier: string, phone: string): Result => { const id = identifier.trim().toLowerCase(); const user = members.find((m) => (m.name.toLowerCase() === id || m.phone === identifier.trim()) && m.phone === phone.trim()); if (!user) return { success: false, notRegistered: true, message: 'We could not find an account with those details.' }; const aliases = new Set(members.filter((member) => member.phone === user.phone).map((member) => member.id)); aliases.delete(user.id); const savedMembership = stored<Record<string, string[]>>(STORAGE.userRooms, {}); const savedRoomIds = savedMembership[user.id] || []; setRooms((previous) => previous.map((room) => { const shouldRestore = savedRoomIds.includes(room.id); const cleaned = room.members.map((member) => member.phone === user.phone ? user : member).filter((member, index, list) => list.findIndex((item) => item.phone === member.phone) === index); return shouldRestore && !cleaned.some((member) => member.id === user.id) ? { ...room, members: [...cleaned, user] } : { ...room, members: cleaned }; })); setAllExpenses((previous) => previous.map((expense) => { const merged = expense.splits.map((split) => aliases.has(split.memberId) ? { ...split, memberId: user.id } : split).reduce((result, split) => { const existing = result.find((item) => item.memberId === split.memberId); if (existing) existing.shareAmount += split.shareAmount; else result.push({ ...split }); return result; }, [] as typeof expense.splits); return { ...expense, paidBy: aliases.has(expense.paidBy) ? user.id : expense.paidBy, splits: merged }; })); setCurrentUserId(user.id); const firstRoom = rooms.find((r) => r.members.some((m) => m.id === user.id || m.phone === user.phone) || savedRoomIds.includes(r.id)); if (firstRoom) setActiveRoomId(firstRoom.id); setIsAuthenticated(true); setIsLoginModalOpen(false); return { success: true }; };
-  const register = (username: string, phone: string): Result => {
+  const login = (identifier: string, phone: string, inputRoomCode?: string): Result => {
+    const id = identifier.trim().toLowerCase();
+    const user = members.find((m) => (m.name.toLowerCase() === id || m.phone === identifier.trim()) && m.phone === phone.trim());
+    if (!user) return { success: false, notRegistered: true, message: 'We could not find an account with those details.' };
+
+    if (inputRoomCode && inputRoomCode.trim()) {
+      const normInput = roomCode(inputRoomCode);
+      const allSearchable = [...rooms, ...stored<Room[]>(STORAGE.globalRooms, []), ...DEFAULT_ROOMS];
+      const targetRoom = allSearchable.find((r) => roomCode(r.code) === normInput || r.code?.trim().toLowerCase() === inputRoomCode.trim().toLowerCase());
+      if (!targetRoom) {
+        return { success: false, message: 'No such room exists with that room code.' };
+      }
+    }
+
+    const aliases = new Set(members.filter((member) => member.phone === user.phone).map((member) => member.id));
+    aliases.delete(user.id);
+    const savedMembership = stored<Record<string, string[]>>(STORAGE.userRooms, {});
+    const savedRoomIds = savedMembership[user.id] || [];
+    setRooms((previous) => previous.map((room) => {
+      const shouldRestore = savedRoomIds.includes(room.id);
+      const cleaned = room.members.map((member) => member.phone === user.phone ? user : member).filter((member, index, list) => list.findIndex((item) => item.phone === member.phone) === index);
+      return shouldRestore && !cleaned.some((member) => member.id === user.id) ? { ...room, members: [...cleaned, user] } : { ...room, members: cleaned };
+    }));
+    setAllExpenses((previous) => previous.map((expense) => {
+      const merged = expense.splits.map((split) => aliases.has(split.memberId) ? { ...split, memberId: user.id } : split).reduce((result, split) => {
+        const existing = result.find((item) => item.memberId === split.memberId);
+        if (existing) existing.shareAmount += split.shareAmount; else result.push({ ...split });
+        return result;
+      }, [] as typeof expense.splits);
+      return { ...expense, paidBy: aliases.has(expense.paidBy) ? user.id : expense.paidBy, splits: merged };
+    }));
+    setCurrentUserId(user.id);
+    if (inputRoomCode && inputRoomCode.trim()) {
+      joinRoom(inputRoomCode);
+    } else {
+      const firstRoom = rooms.find((r) => r.members.some((m) => m.id === user.id || m.phone === user.phone) || savedRoomIds.includes(r.id));
+      if (firstRoom) setActiveRoomId(firstRoom.id);
+    }
+    setIsAuthenticated(true);
+    setIsLoginModalOpen(false);
+    return { success: true };
+  };
+
+  const register = (username: string, phone: string, inputRoomCode?: string): Result => {
     const name = username.trim(); const number = phone.trim();
     if (!name || !number) return { success: false, message: 'Username and phone number are required.' };
+
+    if (inputRoomCode && inputRoomCode.trim()) {
+      const normInput = roomCode(inputRoomCode);
+      const allSearchable = [...rooms, ...stored<Room[]>(STORAGE.globalRooms, []), ...DEFAULT_ROOMS];
+      const targetRoom = allSearchable.find((r) => roomCode(r.code) === normInput || r.code?.trim().toLowerCase() === inputRoomCode.trim().toLowerCase());
+      if (!targetRoom) {
+        return { success: false, message: 'No such room exists with that room code.' };
+      }
+    }
+
     const sameName = members.find((m) => m.name.toLowerCase() === name.toLowerCase());
     const samePhone = members.find((m) => m.phone === number);
     const pending = samePhone?.id.startsWith('pending-') ? samePhone : sameName?.id.startsWith('pending-') ? sameName : undefined;
@@ -101,10 +175,75 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }, [] as typeof expense.splits);
       return { ...expense, paidBy: aliases.has(expense.paidBy) ? user.id : expense.paidBy, splits: merged };
     }));
-    setCurrentUserId(user.id); setIsAuthenticated(true); setIsLoginModalOpen(false); return { success: true };
+    setCurrentUserId(user.id);
+    if (inputRoomCode && inputRoomCode.trim()) {
+      joinRoom(inputRoomCode);
+    }
+    setIsAuthenticated(true);
+    setIsLoginModalOpen(false);
+    return { success: true };
   };
-  const createRoom = (name: string, code?: string): Result => { const cleanedName = name.trim(); const cleanedCode = roomCode(code || `${cleanedName.slice(0, 5)}${new Date().getFullYear()}`); if (!cleanedName || !cleanedCode) return { success: false, message: 'Room name and code are required.' }; if (rooms.some((r) => r.code === cleanedCode)) return { success: false, message: 'That room code is already in use.' }; const room: Room = { id: `room-${Date.now()}`, name: cleanedName, code: cleanedCode, members: [currentUser], createdAt: new Date().toISOString() }; setRooms((p) => [...p, room]); setActiveRoomId(room.id); return { success: true }; };
-  const joinRoom = (code: string): Result => { const target = rooms.find((r) => r.code === roomCode(code)); if (!target) return { success: false, message: 'No room matches that code.' }; if (!target.members.some((m) => m.id === currentUser.id)) setRooms((p) => p.map((r) => r.id === target.id ? { ...r, members: [...r.members, currentUser] } : r)); setActiveRoomId(target.id); return { success: true }; };
+
+  const createRoom = (name: string, code?: string): Result => {
+    const cleanedName = name.trim();
+    const cleanedCode = roomCode(code || `${cleanedName.slice(0, 5)}${new Date().getFullYear()}`);
+    if (!cleanedName || !cleanedCode) return { success: false, message: 'Room name and code are required.' };
+
+    const allKnownRooms = [...rooms, ...stored<Room[]>(STORAGE.globalRooms, []), ...DEFAULT_ROOMS];
+    if (allKnownRooms.some((r) => roomCode(r.code) === cleanedCode)) return { success: false, message: 'That room code is already in use.' };
+
+    const room: Room = { id: `room-${Date.now()}`, name: cleanedName, code: cleanedCode, members: [currentUser], createdAt: new Date().toISOString() };
+    setRooms((p) => [...p.filter((item) => item.id !== room.id), room]);
+
+    const currentGlobal = stored<Room[]>(STORAGE.globalRooms, []);
+    const map = new Map<string, Room>();
+    [...DEFAULT_ROOMS, ...currentGlobal, ...rooms, room].forEach((r) => map.set(r.id, r));
+    localStorage.setItem(STORAGE.globalRooms, JSON.stringify(Array.from(map.values())));
+
+    createRoomApi(currentUser.id, room.name, room.code).catch(() => {});
+
+    setActiveRoomId(room.id);
+    return { success: true };
+  };
+
+  const joinRoom = (code: string): Result => {
+    const normalizedInput = roomCode(code);
+    const globalR = stored<Room[]>(STORAGE.globalRooms, []);
+    const allSearchable = [...rooms, ...globalR, ...DEFAULT_ROOMS];
+
+    const target = allSearchable.find((r) => roomCode(r.code) === normalizedInput || r.code?.trim().toLowerCase() === code.trim().toLowerCase());
+    if (!target) return { success: false, message: 'No such room exists with that room code.' };
+
+    const hasMember = target.members.some((m) => m.id === currentUser.id || (m.phone && m.phone === currentUser.phone));
+    const updatedMembers = hasMember 
+      ? target.members.map((m) => (m.id === currentUser.id || (m.phone && m.phone === currentUser.phone)) ? currentUser : m)
+      : [...target.members, currentUser];
+    const updatedTargetRoom = { ...target, members: updatedMembers };
+
+    setRooms((previous) => {
+      const existsInPrev = previous.some((r) => r.id === target.id);
+      if (existsInPrev) {
+        return previous.map((r) => r.id === target.id ? updatedTargetRoom : r);
+      }
+      return [...previous, updatedTargetRoom];
+    });
+
+    const currentGlobal = stored<Room[]>(STORAGE.globalRooms, []);
+    const map = new Map<string, Room>();
+    [...DEFAULT_ROOMS, ...currentGlobal, ...rooms, updatedTargetRoom].forEach((r) => map.set(r.id, r));
+    localStorage.setItem(STORAGE.globalRooms, JSON.stringify(Array.from(map.values())));
+
+    const savedMembership = stored<Record<string, string[]>>(STORAGE.userRooms, {});
+    const userRoomList = new Set(savedMembership[currentUser.id] || []);
+    userRoomList.add(target.id);
+    savedMembership[currentUser.id] = Array.from(userRoomList);
+    localStorage.setItem(STORAGE.userRooms, JSON.stringify(savedMembership));
+
+    joinRoomApi(currentUser.id, code).catch(() => {});
+
+    setActiveRoomId(target.id);
+    return { success: true };
+  };
   const addMember = (name: string, phone: string): Result => { if (!name.trim() || !phone.trim()) return { success: false, message: 'A roommate name and phone number are required.' }; const known = members.find((m) => m.phone === phone.trim()); const roommate = known || { id: `pending-${Date.now()}`, name: name.trim(), phone: phone.trim(), avatar: 'bg-teal-500 text-white', isCurrentUser: false }; if (!known) setMembers((p) => [...p, roommate]); setRooms((p) => p.map((r) => r.id === activeRoom.id && !r.members.some((m) => m.phone === roommate.phone) ? { ...r, members: [...r.members, roommate] } : r)); return { success: true }; };
   const updateMember = (member: Member) => { const clean = { ...member, isCurrentUser: false }; setMembers((p) => p.map((m) => m.id === clean.id ? clean : m)); setRooms((p) => p.map((r) => ({ ...r, members: r.members.map((m) => m.id === clean.id ? clean : m) }))); };
   const removeMember = (memberId: string): Result => { if (memberId === currentUser.id) return { success: false, message: 'You cannot remove yourself from this room.' }; if (activeRoom.members.length <= 1) return { success: false, message: 'A room must have at least one roommate.' }; setRooms((p) => p.map((r) => r.id === activeRoom.id ? { ...r, members: r.members.filter((m) => m.id !== memberId) } : r)); return { success: true }; };
