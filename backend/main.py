@@ -18,20 +18,9 @@ from schemas import (
 from settlement import simplify_debts
 from typing import Optional
 
-try:
-    Base.metadata.create_all(bind=engine)
-    if engine.name == "sqlite":
-        with engine.connect() as connection:
-            columns = [row[1] for row in connection.execute(text("PRAGMA table_info(rooms)"))]
-            if "code" not in columns:
-                connection.execute(text("ALTER TABLE rooms ADD COLUMN code VARCHAR"))
-                connection.commit()
-except Exception as e:
-    print(f"Warning: Database initialization deferred or encountered issue: {e}")
-
 app = FastAPI(
     title="MaasaSelavu API",
-    description="Backend API for Roommate Shared & Personal Expense Management with SQLite Persistence",
+    description="Backend API for Roommate Shared & Personal Expense Management",
     version="1.0.0"
 )
 
@@ -43,9 +32,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Seed / update default members on startup
+# Automatically create tables & seed default data on startup
 @app.on_event("startup")
-def startup_seed_members():
+def startup_db_init():
+    try:
+        Base.metadata.create_all(bind=engine)
+        if engine.name == "sqlite":
+            with engine.connect() as connection:
+                columns = [row[1] for row in connection.execute(text("PRAGMA table_info(rooms)"))]
+                if "code" not in columns:
+                    connection.execute(text("ALTER TABLE rooms ADD COLUMN code VARCHAR"))
+                    connection.commit()
+    except Exception as e:
+        print(f"Automatic database table creation note: {e}")
+
     try:
         db = next(get_db())
         default_users = [
