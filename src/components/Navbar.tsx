@@ -6,7 +6,6 @@ import {
   PieChart, 
   Users, 
   PlusCircle, 
-  RotateCcw,
   Search,
   Wallet
 } from 'lucide-react';
@@ -18,8 +17,7 @@ export const Navbar: React.FC = () => {
     setActiveTab, 
     searchQuery, 
     setSearchQuery, 
-    setIsAddExpenseModalOpen, 
-    resetToDemoData 
+    setIsAddExpenseModalOpen 
   } = useExpense();
 
   const navItems = [
@@ -77,14 +75,6 @@ export const Navbar: React.FC = () => {
             >
               <PlusCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Add Expense</span>
-            </button>
-
-            <button
-              onClick={resetToDemoData}
-              title="Reset Demo Data"
-              className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 border border-slate-800 rounded-xl transition duration-150 cursor-pointer"
-            >
-              <RotateCcw className="w-4 h-4" />
             </button>
           </div>
         </div>

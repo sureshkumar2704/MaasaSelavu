@@ -6,7 +6,6 @@ import {
   PieChart, 
   Users, 
   PlusCircle, 
-  RotateCcw,
   Wallet,
   X,
   Sparkles,
@@ -26,7 +25,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
     activeTab, 
     setActiveTab, 
     setIsAddExpenseModalOpen, 
-    resetToDemoData,
     members,
     currentUser,
     switchUser,
@@ -245,16 +243,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpen }) => 
             </div>
           </div>
 
-          <button
-            onClick={() => {
-              resetToDemoData();
-              onClose();
-            }}
-            className="w-full py-2.5 px-3 flex items-center justify-center space-x-2 text-xs font-bold text-slate-400 hover:text-slate-200 bg-slate-900/40 hover:bg-slate-900 border border-slate-800 rounded-xl transition cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset Demo State</span>
-          </button>
         </div>
 
       </aside>

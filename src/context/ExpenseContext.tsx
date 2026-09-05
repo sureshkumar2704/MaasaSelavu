@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { DebtTransaction, Expense, Member, MemberBalance, Room, Settlement, Notification } from '../types';
-import { DEFAULT_EXPENSES, DEFAULT_MEMBERS, DEFAULT_ROOMS, DEFAULT_SETTLEMENTS } from '../utils/sampleData';
 import { calculateBalancesAndDebts } from '../utils/settlement';
 
 import { createRoomApi, joinRoomApi } from '../utils/api';
@@ -11,7 +10,7 @@ interface ExpenseContextType {
   createRoom: (name: string, code?: string) => Result; joinRoom: (code: string) => Result;
   activeTab: string; setActiveTab: (tab: string) => void; searchQuery: string; setSearchQuery: (query: string) => void;
   addExpense: (expense: Omit<Expense, 'id' | 'createdAt' | 'roomId'>) => void; deleteExpense: (id: string) => Result;
-  addSettlement: (settlement: Omit<Settlement, 'id'>) => void; addMember: (name: string, phone: string) => Result; updateMember: (member: Member) => void; removeMember: (memberId: string) => Result; resetToDemoData: () => void;
+  addSettlement: (settlement: Omit<Settlement, 'id'>) => void; addMember: (name: string, phone: string) => Result; updateMember: (member: Member) => void; removeMember: (memberId: string) => Result;
   balances: MemberBalance[]; debts: DebtTransaction[]; totalCashPaid: number; currentUserBurden: number; currentUserRecoverable: number;
   isAddExpenseModalOpen: boolean; setIsAddExpenseModalOpen: (open: boolean) => void; currentUserId: string; currentUser: Member;
   notifications: Notification[]; unreadNotificationCount: number; markNotificationRead: (id: string) => void;
@@ -23,36 +22,54 @@ const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
 const stored = <T,>(key: string, fallback: T): T => { try { const value = localStorage.getItem(key); return value ? JSON.parse(value) as T : fallback; } catch { return fallback; } };
 const roomCode = (value: string) => value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-const loadInitialRooms = (): Room[] => {
-  const local = stored<Room[]>(STORAGE.rooms, DEFAULT_ROOMS);
-  const globalR = stored<Room[]>(STORAGE.globalRooms, []);
+// Demo rows that very old versions of the app auto-seeded. They are stripped
+// from storage on load so they never resurface as "default" values the user
+// never added. No new defaults are ever injected anywhere in the app.
+const LEGACY_DEMO_MEMBER_IDS = ['mem-2', 'mem-3', 'mem-4'];
+const LEGACY_DEMO_ROOM_IDS = ['room-goa-vacation'];
+
+const stripLegacyDemoData = (members: Member[], rooms: Room[]): { members: Member[]; rooms: Room[] } => ({
+  members: members.filter((member) => !LEGACY_DEMO_MEMBER_IDS.includes(member.id)),
+  rooms: rooms.filter((room) => !LEGACY_DEMO_ROOM_IDS.includes(room.id)).map((room) => ({ ...room, members: room.members.filter((member) => !LEGACY_DEMO_MEMBER_IDS.includes(member.id)) })),
+});
+
+const loadInitialData = (): { members: Member[]; rooms: Room[] } => {
+  const localRooms = stored<Room[]>(STORAGE.rooms, []);
+  const globalRooms = stored<Room[]>(STORAGE.globalRooms, []);
   const map = new Map<string, Room>();
-  [...DEFAULT_ROOMS, ...globalR, ...local].forEach((r) => map.set(r.id, r));
-  return Array.from(map.values());
+  [...globalRooms, ...localRooms].forEach((room) => map.set(room.id, room));
+  return stripLegacyDemoData(stored<Member[]>(STORAGE.members, []), Array.from(map.values()));
 };
 
+// Render-only placeholder so the UI can mount before the user creates/joins a
+// room. It is never persisted to storage or the backend database.
+const NO_ROOM: Room = { id: '', name: 'No room yet', code: '—', members: [], createdAt: '' };
+// Render-only placeholder used before login. Never persisted.
+const GUEST_USER: Member = { id: 'guest', name: 'Guest', avatar: 'bg-slate-600 text-white', phone: '', isCurrentUser: true };
+
 export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [members, setMembers] = useState<Member[]>(() => stored(STORAGE.members, DEFAULT_MEMBERS));
-  const [rooms, setRooms] = useState<Room[]>(loadInitialRooms);
-  const [currentUserId, setCurrentUserId] = useState(() => localStorage.getItem(STORAGE.user) || DEFAULT_MEMBERS[0].id);
-  const [activeRoomId, setActiveRoomId] = useState(() => localStorage.getItem(STORAGE.room) || DEFAULT_ROOMS[0].id);
-  const [allExpenses, setAllExpenses] = useState<Expense[]>(() => stored(STORAGE.expenses, DEFAULT_EXPENSES));
-  const [settlements, setSettlements] = useState<Settlement[]>(() => stored(STORAGE.settlements, DEFAULT_SETTLEMENTS));
-  const [notifications, setNotifications] = useState<Notification[]>(() => stored(STORAGE.notifications, []));
+  const [initialData] = useState(loadInitialData);
+  const [members, setMembers] = useState<Member[]>(initialData.members);
+  const [rooms, setRooms] = useState<Room[]>(initialData.rooms);
+  const [currentUserId, setCurrentUserId] = useState(() => localStorage.getItem(STORAGE.user) || '');
+  const [activeRoomId, setActiveRoomId] = useState(() => localStorage.getItem(STORAGE.room) || '');
+  const [allExpenses, setAllExpenses] = useState<Expense[]>(() => stored<Expense[]>(STORAGE.expenses, []));
+  const [settlements, setSettlements] = useState<Settlement[]>(() => stored<Settlement[]>(STORAGE.settlements, []));
+  const [notifications, setNotifications] = useState<Notification[]>(() => stored<Notification[]>(STORAGE.notifications, []));
   const [activeTab, setActiveTab] = useState('dashboard'); const [searchQuery, setSearchQuery] = useState('');
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false); const [isLoginModalOpen, setIsLoginModalOpen] = useState(true); const [isAuthenticated, setIsAuthenticated] = useState(false); const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  
-  useEffect(() => { localStorage.setItem(STORAGE.members, JSON.stringify(members)); }, [members]); 
-  useEffect(() => { 
-    localStorage.setItem(STORAGE.rooms, JSON.stringify(rooms)); 
+
+  useEffect(() => { localStorage.setItem(STORAGE.members, JSON.stringify(members)); }, [members]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE.rooms, JSON.stringify(rooms));
     const currentGlobal = stored<Room[]>(STORAGE.globalRooms, []);
     const map = new Map<string, Room>();
-    [...DEFAULT_ROOMS, ...currentGlobal, ...rooms].forEach((r) => map.set(r.id, r));
+    [...currentGlobal, ...rooms].forEach((r) => { if (!LEGACY_DEMO_ROOM_IDS.includes(r.id)) map.set(r.id, r); });
     localStorage.setItem(STORAGE.globalRooms, JSON.stringify(Array.from(map.values())));
-  }, [rooms]); 
-  useEffect(() => { localStorage.setItem(STORAGE.expenses, JSON.stringify(allExpenses)); }, [allExpenses]); 
-  useEffect(() => { localStorage.setItem(STORAGE.settlements, JSON.stringify(settlements)); }, [settlements]); 
-  useEffect(() => { localStorage.setItem(STORAGE.user, currentUserId); }, [currentUserId]); 
+  }, [rooms]);
+  useEffect(() => { localStorage.setItem(STORAGE.expenses, JSON.stringify(allExpenses)); }, [allExpenses]);
+  useEffect(() => { localStorage.setItem(STORAGE.settlements, JSON.stringify(settlements)); }, [settlements]);
+  useEffect(() => { localStorage.setItem(STORAGE.user, currentUserId); }, [currentUserId]);
   useEffect(() => { localStorage.setItem(STORAGE.room, activeRoomId); }, [activeRoomId]);
   useEffect(() => { localStorage.setItem(STORAGE.notifications, JSON.stringify(notifications)); }, [notifications]);
   useEffect(() => {
@@ -71,17 +88,18 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return unique.length === room.members.length ? room : { ...room, members: unique };
     }));
   }, [members.length]);
-  const currentUser = useMemo(() => members.find((m) => m.id === currentUserId) || members[0], [members, currentUserId]);
+  const currentUser = useMemo(() => members.find((m) => m.id === currentUserId) || members[0] || GUEST_USER, [members, currentUserId]);
   const userRooms = useMemo(() => rooms.filter((r) => r.members.some((m) => m.id === currentUser.id || (m.phone && m.phone === currentUser.phone))), [rooms, currentUser.id, currentUser.phone]);
-  const activeRoom = useMemo(() => userRooms.find((r) => r.id === activeRoomId) || userRooms[0] || rooms[0], [activeRoomId, rooms, userRooms]);
-  useEffect(() => { if (activeRoom && activeRoom.id !== activeRoomId) setActiveRoomId(activeRoom.id); }, [activeRoom, activeRoomId]);
+  const activeRoom = useMemo(() => userRooms.find((r) => r.id === activeRoomId) || userRooms[0] || rooms[0] || NO_ROOM, [activeRoomId, rooms, userRooms]);
+  useEffect(() => { if (activeRoom.id && activeRoom.id !== activeRoomId) setActiveRoomId(activeRoom.id); }, [activeRoom, activeRoomId]);
   const refreshData = () => {
-    setMembers(stored(STORAGE.members, DEFAULT_MEMBERS));
-    setRooms(stored(STORAGE.rooms, DEFAULT_ROOMS));
-    setAllExpenses(stored(STORAGE.expenses, DEFAULT_EXPENSES));
-    setSettlements(stored(STORAGE.settlements, DEFAULT_SETTLEMENTS));
-    setNotifications(stored(STORAGE.notifications, []));
-    setActiveRoomId(localStorage.getItem(STORAGE.room) || DEFAULT_ROOMS[0].id);
+    const fresh = loadInitialData();
+    setMembers(fresh.members);
+    setRooms(fresh.rooms);
+    setAllExpenses(stored<Expense[]>(STORAGE.expenses, []));
+    setSettlements(stored<Settlement[]>(STORAGE.settlements, []));
+    setNotifications(stored<Notification[]>(STORAGE.notifications, []));
+    setActiveRoomId(localStorage.getItem(STORAGE.room) || '');
   };
   const visibleMembers = useMemo(() => {
     const canonicalByPhone = new Map<string, Member>();
@@ -104,7 +122,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     if (inputRoomCode && inputRoomCode.trim()) {
       const normInput = roomCode(inputRoomCode);
-      const allSearchable = [...rooms, ...stored<Room[]>(STORAGE.globalRooms, []), ...DEFAULT_ROOMS];
+      const allSearchable = [...rooms, ...stored<Room[]>(STORAGE.globalRooms, [])];
       const targetRoom = allSearchable.find((r) => roomCode(r.code) === normInput || r.code?.trim().toLowerCase() === inputRoomCode.trim().toLowerCase());
       if (!targetRoom) {
         return { success: false, message: 'No such room exists with that room code.' };
@@ -146,7 +164,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     if (inputRoomCode && inputRoomCode.trim()) {
       const normInput = roomCode(inputRoomCode);
-      const allSearchable = [...rooms, ...stored<Room[]>(STORAGE.globalRooms, []), ...DEFAULT_ROOMS];
+      const allSearchable = [...rooms, ...stored<Room[]>(STORAGE.globalRooms, [])];
       const targetRoom = allSearchable.find((r) => roomCode(r.code) === normInput || r.code?.trim().toLowerCase() === inputRoomCode.trim().toLowerCase());
       if (!targetRoom) {
         return { success: false, message: 'No such room exists with that room code.' };
@@ -189,7 +207,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const cleanedCode = roomCode(code || `${cleanedName.slice(0, 5)}${new Date().getFullYear()}`);
     if (!cleanedName || !cleanedCode) return { success: false, message: 'Room name and code are required.' };
 
-    const allKnownRooms = [...rooms, ...stored<Room[]>(STORAGE.globalRooms, []), ...DEFAULT_ROOMS];
+    const allKnownRooms = [...rooms, ...stored<Room[]>(STORAGE.globalRooms, [])];
     if (allKnownRooms.some((r) => roomCode(r.code) === cleanedCode)) return { success: false, message: 'That room code is already in use.' };
 
     const room: Room = { id: `room-${Date.now()}`, name: cleanedName, code: cleanedCode, members: [currentUser], createdAt: new Date().toISOString() };
@@ -197,7 +215,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const currentGlobal = stored<Room[]>(STORAGE.globalRooms, []);
     const map = new Map<string, Room>();
-    [...DEFAULT_ROOMS, ...currentGlobal, ...rooms, room].forEach((r) => map.set(r.id, r));
+    [...currentGlobal, ...rooms, room].forEach((r) => map.set(r.id, r));
     localStorage.setItem(STORAGE.globalRooms, JSON.stringify(Array.from(map.values())));
 
     createRoomApi(currentUser.id, room.name, room.code).catch(() => {});
@@ -209,13 +227,13 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const joinRoom = (code: string): Result => {
     const normalizedInput = roomCode(code);
     const globalR = stored<Room[]>(STORAGE.globalRooms, []);
-    const allSearchable = [...rooms, ...globalR, ...DEFAULT_ROOMS];
+    const allSearchable = [...rooms, ...globalR];
 
     const target = allSearchable.find((r) => roomCode(r.code) === normalizedInput || r.code?.trim().toLowerCase() === code.trim().toLowerCase());
     if (!target) return { success: false, message: 'No such room exists with that room code.' };
 
     const hasMember = target.members.some((m) => m.id === currentUser.id || (m.phone && m.phone === currentUser.phone));
-    const updatedMembers = hasMember 
+    const updatedMembers = hasMember
       ? target.members.map((m) => (m.id === currentUser.id || (m.phone && m.phone === currentUser.phone)) ? currentUser : m)
       : [...target.members, currentUser];
     const updatedTargetRoom = { ...target, members: updatedMembers };
@@ -230,7 +248,7 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const currentGlobal = stored<Room[]>(STORAGE.globalRooms, []);
     const map = new Map<string, Room>();
-    [...DEFAULT_ROOMS, ...currentGlobal, ...rooms, updatedTargetRoom].forEach((r) => map.set(r.id, r));
+    [...currentGlobal, ...rooms, updatedTargetRoom].forEach((r) => map.set(r.id, r));
     localStorage.setItem(STORAGE.globalRooms, JSON.stringify(Array.from(map.values())));
 
     const savedMembership = stored<Record<string, string[]>>(STORAGE.userRooms, {});
@@ -252,7 +270,6 @@ export const ExpenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const deleteExpense = (id: string): Result => { const expense = allExpenses.find((item) => item.id === id); if (!expense) return { success: false, message: 'Transaction not found.' }; if (expense.paidBy !== currentUser.id) return { success: false, message: 'You can only delete transactions that you made.' }; setAllExpenses((p) => p.filter((item) => item.id !== id)); const recipients = activeRoom.members.filter((member) => member.id !== currentUser.id); setNotifications((p) => [...recipients.map((member) => ({ id: `note-${Date.now()}-${member.id}`, recipientId: member.id, message: `${currentUser.name} deleted the transaction “${expense.title}” (₹${expense.amount.toLocaleString('en-IN')}) from ${activeRoom.name}.`, createdAt: new Date().toISOString(), read: false })), ...p]); return { success: true }; };
   const userNotifications = notifications.filter((notification) => notification.recipientId === currentUser.id);
   const markNotificationRead = (id: string) => setNotifications((p) => p.map((notification) => notification.id === id ? { ...notification, read: true } : notification));
-  const resetToDemoData = () => { setMembers(DEFAULT_MEMBERS); setRooms(DEFAULT_ROOMS); setAllExpenses(DEFAULT_EXPENSES); setSettlements(DEFAULT_SETTLEMENTS); setCurrentUserId(DEFAULT_MEMBERS[0].id); setActiveRoomId(DEFAULT_ROOMS[0].id); Object.values(STORAGE).forEach((key) => localStorage.removeItem(key)); };
-  return <ExpenseContext.Provider value={{ members: visibleMembers, expenses, allExpenses, settlements, rooms: userRooms, activeRoomId: activeRoom.id, activeRoom, setActiveRoomId, refreshData, createRoom, joinRoom, activeTab, setActiveTab, searchQuery, setSearchQuery, addExpense, deleteExpense, addSettlement: (s) => setSettlements((p) => [{ ...s, id: `settle-${Date.now()}` }, ...p]), addMember, updateMember, removeMember, resetToDemoData, balances: calculated.balances, debts: calculated.debts, totalCashPaid: calculated.totalCashPaidByCurrentUser, currentUserBurden: calculated.currentUserBurden, currentUserRecoverable: calculated.currentUserRecoverable, isAddExpenseModalOpen, setIsAddExpenseModalOpen, currentUserId, currentUser, notifications: userNotifications, unreadNotificationCount: userNotifications.filter((n) => !n.read).length, markNotificationRead, isLoginModalOpen, setIsLoginModalOpen, isAuthenticated, isProfileModalOpen, setIsProfileModalOpen, login, register, updateMyPhone, switchUser: setCurrentUserId, logout: () => { setIsAuthenticated(false); setIsLoginModalOpen(true); } }}>{children}</ExpenseContext.Provider>;
+  return <ExpenseContext.Provider value={{ members: visibleMembers, expenses, allExpenses, settlements, rooms: userRooms, activeRoomId: activeRoom.id, activeRoom, setActiveRoomId, refreshData, createRoom, joinRoom, activeTab, setActiveTab, searchQuery, setSearchQuery, addExpense, deleteExpense, addSettlement: (s) => setSettlements((p) => [{ ...s, id: `settle-${Date.now()}` }, ...p]), addMember, updateMember, removeMember, balances: calculated.balances, debts: calculated.debts, totalCashPaid: calculated.totalCashPaidByCurrentUser, currentUserBurden: calculated.currentUserBurden, currentUserRecoverable: calculated.currentUserRecoverable, isAddExpenseModalOpen, setIsAddExpenseModalOpen, currentUserId, currentUser, notifications: userNotifications, unreadNotificationCount: userNotifications.filter((n) => !n.read).length, markNotificationRead, isLoginModalOpen, setIsLoginModalOpen, isAuthenticated, isProfileModalOpen, setIsProfileModalOpen, login, register, updateMyPhone, switchUser: setCurrentUserId, logout: () => { setIsAuthenticated(false); setIsLoginModalOpen(true); } }}>{children}</ExpenseContext.Provider>;
 };
 export const useExpense = () => { const context = useContext(ExpenseContext); if (!context) throw new Error('useExpense must be used within ExpenseProvider'); return context; };

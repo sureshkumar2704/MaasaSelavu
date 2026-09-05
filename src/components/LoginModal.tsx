@@ -50,7 +50,7 @@ export const LoginModal: React.FC = () => {
             <label className="text-xs font-bold text-slate-300">Phone number *</label>
             <div className="relative mt-1.5">
               <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-400"/>
-              <input required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. 9876543210 or 9876543214" className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm" />
+              <input required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="e.g. 9876543210" className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm" />
             </div>
           </div>
 
@@ -74,9 +74,6 @@ export const LoginModal: React.FC = () => {
         </form>
 
         <p className="mt-5 text-[11px] text-slate-500">Entering a room code automatically unlocks and connects you to that room on login.</p>
-        <div className="mt-4 pt-4 border-t border-slate-800 text-[10px] text-slate-500 font-mono">
-          Demo: Suresh (9876543210) · Tamil (9876543214) | Room: FLAT302
-        </div>
       </div>
     </div>
 
